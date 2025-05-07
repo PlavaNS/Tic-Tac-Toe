@@ -15,6 +15,7 @@
       --button-bg: #3498db;
       --button-text: #fff;
       --o-color: #e74c3c;
+      --moon-color: #111;
     }
 
     body.dark {
@@ -27,6 +28,7 @@
       --button-bg: #e1e5eb;
       --button-text: #111;
       --o-color: #e74c3c;
+      --moon-color: #f5f5f5;
     }
 
     body {
@@ -52,7 +54,7 @@
       grid-template-rows: repeat(3, 100px);
       gap: 12px;
       margin-top: 40px;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
     .cell {
@@ -103,12 +105,12 @@
     #newGameBtn {
       font-size: 1.2rem;
       font-weight: bold;
-      color: var(--text);
+      color: var(--moon-color);
       background: none;
       border: none;
       display: none;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin-bottom: 50px;
     }
 
     #newGameBtn:hover {
@@ -151,6 +153,7 @@
   let gameActive;
   let currentPlayer;
   let firstPlayer = 'X';
+let moveCounter = 0;
 
   const combos = [
     [0,1,2], [3,4,5], [6,7,8],
@@ -159,6 +162,7 @@
   ];
 
   function initGame() {
+    moveCounter = 0;
     board = Array(9).fill('');
     gameActive = true;
     currentPlayer = firstPlayer;
@@ -197,7 +201,7 @@
   function botMove() {
     if (!gameActive) return;
     let move;
-    if (Math.random() < 0.1) {
+    if (moveCounter % 10 === 9) {
       move = randomMove();
     } else {
       move = bestMove();
