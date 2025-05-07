@@ -1,84 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Tic Tac Toe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --bg: #f5f5f5;
+      --text: #333;
+      --cell-bg: white;
+      --hover-bg: #f0f0f0;
+      --x-color: #2c3e50;
+      --highlight-X: #3498db;
+      --button-bg: #3498db;
+      --button-text: #fff;
+    }
+
+    body.dark {
+      --bg: #111;
+      --text: #f5f5f5;
+      --cell-bg: #1e1e1e;
+      --hover-bg: #333;
+      --x-color: #e1e5eb;
+      --highlight-X: #e1e5eb;
+      --button-bg: #e1e5eb;
+      --button-text: #111;
+    }
+
     body {
-      background: #0f0f0f;
-      color: white;
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
     }
+
     #game {
       display: grid;
       grid-template-columns: repeat(3, 100px);
-      gap: 15px;
+      grid-template-rows: repeat(3, 100px);
+      gap: 12px;
       margin-top: 40px;
+      margin-bottom: 20px;
     }
+
     .cell {
-      width: 100px;
-      height: 100px;
-      background: #1e1e1e;
-      border-radius: 15px;
-      font-size: 2.5rem;
+      background: var(--cell-bg);
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      font-size: 3rem;
       font-weight: bold;
-      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
-      transition: background 0.3s, transform 0.2s;
+      transition: background 0.2s;
     }
+
     .cell:hover {
-      background: #292929;
-      box-shadow: 0 0 10px #00ffff80;
+      background: var(--hover-bg);
     }
-    .X { color: #00faff; text-shadow: 0 0 10px #00faff; }
-    .O { color: #ff4fc2; text-shadow: 0 0 10px #ff4fc2; }
-    .win { transform: scale(1.2); }
-    #status { margin-top: 25px; font-size: 1.4em; }
-    #reset {
-      margin-top: 20px;
-      padding: 10px 25px;
-      font-size: 1em;
-      cursor: pointer;
-      background: #ff4081;
+
+    .X {
+      color: var(--x-color);
+      text-shadow: 1px 1px 4px #7f8c8d;
+    }
+
+    .O {
+      color: #e74c3c;
+      text-shadow: 1px 1px 4px #ffaaaa;
+    }
+
+    .win.X {
+      box-shadow: 0 0 20px var(--highlight-X);
+    }
+
+    .win.O {
+      box-shadow: 0 0 20px #e74c3c;
+    }
+
+    #newGameBtn {
+      background: var(--button-bg);
+      color: var(--button-text);
       border: none;
-      color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+      padding: 12px 24px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      display: none;
+      transition: background 0.3s;
+    }
+
+    #newGameBtn:hover {
+      opacity: 0.9;
+    }
+
+    #darkToggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    #darkToggle img {
+      width: 42px;
+      height: 42px;
     }
   </style>
 </head>
 <body>
 
 <div id="game"></div>
-<div id="status"></div>
-<button id="reset">Reset</button>
-
-<audio id="winSound" src="correct.mp3" preload="auto"></audio>
+<button id="newGameBtn">New Game</button>
+<button id="darkToggle"><img src="dark light.png" alt="Toggle theme"></button>
 
 <script>
   const game = document.getElementById('game');
-  const statusDiv = document.getElementById('status');
-  const resetBtn = document.getElementById('reset');
-  const winSound = document.getElementById('winSound');
+  const newGameBtn = document.getElementById('newGameBtn');
+  const darkToggle = document.getElementById('darkToggle');
 
-  let board = Array(9).fill('');
-  let gameActive = true;
+  let board;
+  let gameActive;
+  let currentPlayer;
   let firstPlayer = 'X';
-  let currentPlayer = firstPlayer;
 
   const combos = [
     [0,1,2], [3,4,5], [6,7,8],
     [0,3,6], [1,4,7], [2,5,8],
     [0,4,8], [2,4,6]
   ];
+
+  function initGame() {
+    board = Array(9).fill('');
+    gameActive = true;
+    currentPlayer = firstPlayer;
+    renderBoard();
+    newGameBtn.style.display = 'none';
+    if (currentPlayer === 'O') {
+      setTimeout(botMove, 400);
+    }
+  }
 
   function renderBoard(highlight = []) {
     game.innerHTML = '';
@@ -88,7 +156,7 @@
       if (val) {
         div.textContent = val;
         div.classList.add(val);
-        if (highlight.includes(i)) div.classList.add('win');
+        if (highlight.includes(i)) div.classList.add('win', val);
       }
       div.addEventListener('click', () => handleClick(i));
       game.appendChild(div);
@@ -102,7 +170,7 @@
     const result = checkWinner();
     if (result) return endGame(result.winner, result.combo);
     currentPlayer = 'O';
-    setTimeout(botMove, 300);
+    setTimeout(botMove, 400);
   }
 
   function botMove() {
@@ -186,20 +254,17 @@
   function endGame(winner, combo) {
     gameActive = false;
     renderBoard(combo);
-    if (winner !== 'Draw') winSound.play();
-    statusDiv.textContent = winner === 'Draw' ? 'Draw!' : `${winner} wins!`;
+    newGameBtn.style.display = 'inline-block';
   }
 
-  resetBtn.addEventListener('click', () => {
-    board = Array(9).fill('');
-    gameActive = true;
-    currentPlayer = (firstPlayer = firstPlayer === 'X' ? 'O' : 'X');
-    statusDiv.textContent = '';
-    renderBoard();
-    if (currentPlayer === 'O') setTimeout(botMove, 300);
+  newGameBtn.addEventListener('click', () => {
+    firstPlayer = firstPlayer === 'X' ? 'O' : 'X';
+    initGame();
   });
 
-  renderBoard();
+  darkToggle.addEventListener('click', () => document.body.classList.toggle('dark'));
+
+  initGame();
 </script>
 
 </body>
