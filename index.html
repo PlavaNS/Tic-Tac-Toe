@@ -14,6 +14,7 @@
       --highlight-X: #3498db;
       --button-bg: #3498db;
       --button-text: #fff;
+      --o-color: #e74c3c;
     }
 
     body.dark {
@@ -25,6 +26,7 @@
       --highlight-X: #e1e5eb;
       --button-bg: #e1e5eb;
       --button-text: #111;
+      --o-color: #e74c3c;
     }
 
     body {
@@ -57,19 +59,22 @@
       background: var(--cell-bg);
       border: 2px solid #ccc;
       border-radius: 12px;
-      font-size: 3rem;
+      font-size: 4.2rem;
       font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.2s;
       color: var(--x-color);
+    }
+
+    .cell:active {
+      transform: scale(1.05);
     }
 
     body.dark .cell {
       background-color: #1e1e1e !important;
-      color: #e1e5eb !important;
       border-color: #444 !important;
     }
 
@@ -83,7 +88,7 @@
     }
 
     .O {
-      color: #e74c3c;
+      color: var(--o-color);
       text-shadow: 1px 1px 4px #ffaaaa;
     }
 
@@ -92,24 +97,23 @@
     }
 
     .win.O {
-      box-shadow: 0 0 20px #e74c3c;
+      box-shadow: 0 0 20px var(--o-color);
     }
 
     #newGameBtn {
-      background: var(--button-bg);
-      color: var(--button-text);
-      border: none;
-      padding: 12px 24px;
       font-size: 1.2rem;
       font-weight: bold;
-      border-radius: 12px;
-      cursor: pointer;
+      color: var(--text);
+      background: none;
+      border: none;
       display: none;
-      transition: background 0.3s;
+      cursor: pointer;
+      margin-bottom: 20px;
     }
 
     #newGameBtn:hover {
-      opacity: 0.9;
+      opacity: 0.8;
+      text-decoration: underline;
     }
 
     #darkToggle {
@@ -121,17 +125,22 @@
       cursor: pointer;
     }
 
-    #darkToggle img {
+    #darkToggle svg {
       width: 42px;
       height: 42px;
+      fill: var(--text);
     }
   </style>
 </head>
 <body>
 
 <div id="game"></div>
-<button id="newGameBtn">New Game</button>
-<button id="darkToggle"><img src="dark light.png" alt="Toggle theme"></button>
+<button id="newGameBtn" aria-label="New Game">New Game</button>
+<button id="darkToggle" aria-label="Toggle theme">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/>
+  </svg>
+</button>
 
 <script>
   const game = document.getElementById('game');
@@ -187,7 +196,12 @@
 
   function botMove() {
     if (!gameActive) return;
-    const move = bestMove();
+    let move;
+    if (Math.random() < 0.1) {
+      move = randomMove();
+    } else {
+      move = bestMove();
+    }
     if (move !== undefined) {
       board[move] = 'O';
       renderBoard();
@@ -195,6 +209,11 @@
       if (result) return endGame(result.winner, result.combo);
     }
     currentPlayer = 'X';
+  }
+
+  function randomMove() {
+    const empty = board.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+    return empty.length ? empty[Math.floor(Math.random() * empty.length)] : null;
   }
 
   function bestMove() {
