@@ -16,6 +16,7 @@
       --button-bg: #3498db;
       --button-text: #fff;
       --o-color: #e74c3c;
+      --highlight-O: #e74c3c;
       --moon-color: #111;
     }
     body.dark {
@@ -28,6 +29,7 @@
       --button-bg: #e1e5eb;
       --button-text: #111;
       --o-color: #e74c3c;
+      --highlight-O: #e74c3c;
       --moon-color: #f5f5f5;
     }
     body {
@@ -66,10 +68,16 @@
     .cell:hover { background: var(--hover-bg); }
     .X { color: var(--x-color); text-shadow: 1px 1px 4px #7f8c8d; }
     .O { color: var(--o-color); text-shadow: 1px 1px 4px #ffaaaa; }
-    .win.X, .win.O {
+
+    .win.X {
       box-shadow: 0 0 20px var(--highlight-X);
       animation: shake 0.5s, pulse 2s infinite;
     }
+    .win.O {
+      box-shadow: 0 0 20px var(--highlight-O);
+      animation: shake 0.5s, pulse 2s infinite;
+    }
+
     @keyframes shake {
       0% { transform: translate(0); }
       25% { transform: translate(-5px, 0); }
@@ -226,7 +234,6 @@ function startNewGame() {
   gameBoard = Array(9).fill('');
   document.getElementById("newGameBtn").classList.remove("visible");
   gameCount++;
-  // Naizmenično: neparan broj igra čovek prvi, paran broj bot prvi
   const humanStarts = gameCount % 2 === 1;
   currentPlayer = humanStarts ? 'X' : 'O';
   renderBoard();
@@ -258,7 +265,11 @@ window.addEventListener("DOMContentLoaded", () => {
   payBtn.style.display = 'block';
 
   if (typeof window.Pi !== 'undefined') {
-    Pi.init({ version: "2.0", sandbox: true });
+    Pi.init({
+      version: "2.0",
+      sandbox: true,
+      appKey: "c9qcd5pvq8uilr0ymhj6feag97ftrllyjeb6uib1bmnwjsk6u59ushil1xibxlae"
+    });
     Pi.authenticate(['payments'], function (payment) {
       console.log('Incomplete payment found:', payment);
     }).then(function (auth) {
