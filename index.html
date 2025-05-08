@@ -68,7 +68,6 @@
     .cell:hover { background: var(--hover-bg); }
     .X { color: var(--x-color); text-shadow: 1px 1px 4px #7f8c8d; }
     .O { color: var(--o-color); text-shadow: 1px 1px 4px #ffaaaa; }
-
     .win.X {
       box-shadow: 0 0 20px var(--highlight-X);
       animation: shake 0.5s, pulse 2s infinite;
@@ -77,7 +76,6 @@
       box-shadow: 0 0 20px var(--highlight-O);
       animation: shake 0.5s, pulse 2s infinite;
     }
-
     @keyframes shake {
       0% { transform: translate(0); }
       25% { transform: translate(-5px, 0); }
@@ -167,19 +165,12 @@ function playerMove(index) {
 
 function botMove() {
   if (gameOver) return;
-  const cheatMode = (gameCount + 1) % 2 === 0 && (gameCount + 1) % 10 === 0;
-  let move = -1;
-
-  if (!cheatMode) {
-    move = findBestMove('O');
-    if (move === -1) move = findBestMove('X');
-  }
-
+  let move = findBestMove('O');
+  if (move === -1) move = findBestMove('X');
   if (move === -1) {
     const empty = gameBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
     move = empty[Math.floor(Math.random() * empty.length)];
   }
-
   gameBoard[move] = 'O';
   renderBoard();
   if (checkEnd('O')) return;
@@ -234,10 +225,9 @@ function startNewGame() {
   gameBoard = Array(9).fill('');
   document.getElementById("newGameBtn").classList.remove("visible");
   gameCount++;
-  const humanStarts = gameCount % 2 === 1;
-  currentPlayer = humanStarts ? 'X' : 'O';
+  currentPlayer = gameCount % 2 === 1 ? 'X' : 'O';
   renderBoard();
-  if (!humanStarts) setTimeout(botMove, 400);
+  if (currentPlayer === 'O') setTimeout(botMove, 400);
 }
 
 function toggleDarkMode() {
@@ -252,18 +242,32 @@ function processPiPayment() {
     metadata: { purpose: "Game Payment" },
     to: "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP"
   }, {
-    onReadyForServerApproval: (paymentId) => console.log("Approve: ", paymentId),
-    onReadyForServerCompletion: (paymentId, txid) => console.log("✅ Payment complete: " + txid),
-    onCancel: (paymentId) => console.log("❌ Cancelled: ", paymentId),
-    onError: (error) => console.log("❌ Error: " + error.message)
+    onReadyForServerApproval: (paymentId) => {
+      fetch("https://pi-pay-backend.markoplavsicns.repl.co/payments/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId })
+      });
+    },
+    onReadyForServerCompletion: (paymentId, txid) => {
+      fetch("https://pi-pay-backend.markoplavsicns.repl.co/payments/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId, txid })
+      });
+      alert("✅ Payment complete!");
+    },
+    onCancel: (paymentId) => {
+      console.log("❌ Cancelled: ", paymentId);
+    },
+    onError: (error) => {
+      console.log("❌ Error: " + error.message);
+    }
   });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   startNewGame();
-  const payBtn = document.getElementById('payBtn');
-  payBtn.style.display = 'block';
-
   if (typeof window.Pi !== 'undefined') {
     Pi.init({
       version: "2.0",
