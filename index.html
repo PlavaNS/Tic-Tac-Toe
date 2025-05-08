@@ -67,15 +67,7 @@
       color: var(--x-color);
     }
 
-    .cell:active {
-      transform: scale(1.05);
-    }
-
-    body.dark .cell {
-      background-color: #1e1e1e !important;
-      border-color: #444 !important;
-    }
-
+    .cell:active { transform: scale(1.05); }
     .cell:hover { background: var(--hover-bg); }
     .X { color: var(--x-color); text-shadow: 1px 1px 4px #7f8c8d; }
     .O { color: var(--o-color); text-shadow: 1px 1px 4px #ffaaaa; }
@@ -134,7 +126,6 @@ const game = document.getElementById('game');
 const newGameBtn = document.getElementById('newGameBtn');
 const darkToggle = document.getElementById('darkToggle');
 let piUserAuthenticated = false;
-
 let board;
 let gameActive;
 let currentPlayer;
@@ -332,6 +323,5 @@ async function processPiPayment() {
 
 initGame();
 </script>
-
 </body>
 </html>
