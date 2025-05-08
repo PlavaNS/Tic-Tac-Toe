@@ -1,108 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-  <meta charset="UTF-8">
-  <title>Tic Tac Toe</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <style>
-    :root {
-      --bg: #f5f5f5;
-      --text: #333;
-      --cell-bg: white;
-      --hover-bg: #f0f0f0;
-      --x-color: #2c3e50;
-      --highlight-X: #3498db;
-      --button-bg: #3498db;
-      --button-text: #fff;
-      --o-color: #e74c3c;
-      --moon-color: #111;
-    }
-    body.dark {
-      --bg: #111;
-      --text: #f5f5f5;
-      --cell-bg: #1e1e1e;
-      --hover-bg: #333;
-      --x-color: #e1e5eb;
-      --highlight-X: #e1e5eb;
-      --button-bg: #e1e5eb;
-      --button-text: #111;
-      --o-color: #e74c3c;
-      --moon-color: #f5f5f5;
-    }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      background: var(--bg);
-      color: var(--text);
-      transition: background 0.3s, color 0.3s;
-    }
-    #game {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 12px;
-      margin-top: 40px;
-      margin-bottom: 30px;
-    }
-    .cell {
-      background: var(--cell-bg);
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      font-size: 4.2rem;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-      color: var(--x-color);
-    }
-    .cell:active { transform: scale(1.05); }
-    .cell:hover { background: var(--hover-bg); }
-    .X { color: var(--x-color); text-shadow: 1px 1px 4px #7f8c8d; }
-    .O { color: var(--o-color); text-shadow: 1px 1px 4px #ffaaaa; }
-    .win.X { box-shadow: 0 0 20px var(--highlight-X); }
-    .win.O { box-shadow: 0 0 20px var(--o-color); }
-    #newGameBtn {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--moon-color);
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-bottom: 10px;
-      display: none;
-    }
-    #newGameBtn.visible { display: block; }
-    #newGameBtn:hover { opacity: 0.8; text-decoration: underline; }
-    #payBtn {
-      font-size: 1rem;
-      background: var(--button-bg);
-      color: var(--button-text);
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      display: none;
-    }
-    #payBtn.visible { display: block; }
-    #payBtn:hover { opacity: 0.9; }
-    #darkToggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-    #darkToggle svg { width: 42px; height: 42px; fill: var(--text); }
-  </style>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --text: #333;
+            --cell-bg: white;
+            --hover-bg: #f0f0f0;
+            --x-color: #2c3e50;
+            --highlight-X: #3498db;
+            --button-bg: #3498db;
+            --button-text: #fff;
+            --o-color: #e74c3c;
+            --moon-color: #111;
+        }
+        body.dark {
+            --bg: #111;
+            --text: #f5f5f5;
+            --cell-bg: #1e1e1e;
+            --hover-bg: #333;
+            --x-color: #e1e5eb;
+            --highlight-X: #e1e5eb;
+            --button-bg: #e1e5eb;
+            --button-text: #111;
+            --o-color: #e74c3c;
+            --moon-color: #f5f5f5;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 12px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+        .cell {
+            background: var(--cell-bg);
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            font-size: 4.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            color: var(--x-color);
+        }
+        .cell:active { transform: scale(1.05); }
+        .cell:hover { background: var(--hover-bg); }
+        .X { color: var(--x-color); text-shadow: 1px 1px 4px #7f8c8d; }
+        .O { color: var(--o-color); text-shadow: 1px 1px 4px #ffaaaa; }
+        .win.X {
+            box-shadow: 0 0 20px var(--highlight-X);
+            animation: shake 0.5s, pulse 2s infinite;
+        }
+        .win.O {
+            box-shadow: 0 0 20px var(--o-color);
+            animation: shake 0.5s, pulse 2s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-5px, 0); }
+            50% { transform: translate(5px, 0); }
+            75% { transform: translate(-5px, 0); }
+            100% { transform: translate(0); }
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+        #newGameBtn {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--moon-color);
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: none;
+        }
+        #newGameBtn.visible { display: block; }
+        #newGameBtn:hover { opacity: 0.8; text-decoration: underline; }
+        #payBtn {
+            font-size: 1rem;
+            background: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: none;
+        }
+        #payBtn.visible { display: block; }
+        #payBtn:hover { opacity: 0.9; }
+        #darkToggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        #darkToggle svg { width: 42px; height: 42px; fill: var(--text); }
+    </style>
 </head>
 <body>
 
@@ -110,7 +128,7 @@
 <button id="newGameBtn" onclick="startNewGame()">New Game</button>
 <button id="payBtn" onclick="processPiPayment()">Pay with Pi</button>
 <button id="darkToggle" onclick="toggleDarkMode()" aria-label="Toggle Theme">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
 </button>
 
 <script>
@@ -120,149 +138,254 @@ let piUserAuthenticated = false;
 let gameOver = false;
 let gameCount = 0;
 
+// Konstante za dobitne kombinacije
 const winCombos = [
-  [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
 ];
 
+/**
+ * Renderuje tablu igre na osnovu trenutnog stanja gameBoard.
+ */
 function renderBoard() {
-  const board = document.getElementById("game");
-  board.innerHTML = '';
-  gameBoard.forEach((val, idx) => {
-    const cell = document.createElement('div');
-    cell.classList.add('cell');
-    if (val) cell.classList.add(val);
-    cell.textContent = val;
-    cell.addEventListener('click', () => playerMove(idx));
-    board.appendChild(cell);
-  });
-}
+    const board = document.getElementById("game");
+    board.innerHTML = ''; // Očisti tablu pre ponovnog renderovanja
 
-function playerMove(index) {
-  if (gameOver || gameBoard[index] || currentPlayer !== 'X') return;
-  gameBoard[index] = 'X';
-  renderBoard();
-  if (checkEnd('X')) return;
-  currentPlayer = 'O';
-  setTimeout(botMove, 500);
-}
-
-function botMove() {
-  if (gameOver) return;
-  let move = -1;
-  const cheatMode = (gameCount + 1) % 10 === 0; // every 10th game: bot lets you win
-
-  if (!cheatMode) {
-    // Try to win
-    move = findBestMove('O');
-    // Block player
-    if (move === -1) move = findBestMove('X');
-  }
-
-  // Random move fallback
-  if (move === -1) {
-    const empty = gameBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
-    move = empty[Math.floor(Math.random() * empty.length)];
-  }
-
-  gameBoard[move] = 'O';
-  renderBoard();
-  if (checkEnd('O')) return;
-  currentPlayer = 'X';
-}
-
-function findBestMove(player) {
-  for (let combo of winCombos) {
-    const [a,b,c] = combo;
-    const line = [gameBoard[a], gameBoard[b], gameBoard[c]];
-    if (line.filter(x => x === player).length === 2 && line.includes('')) {
-      return combo[line.indexOf('')];
-    }
-  }
-  return -1;
-}
-
-function checkEnd(player) {
-  if (checkWin(player)) {
-    highlightWin(player);
-    endGame();
-    return true;
-  }
-  if (!gameBoard.includes('')) {
-    endGame();
-    return true;
-  }
-  return false;
-}
-
-function checkWin(player) {
-  return winCombos.some(combo => combo.every(i => gameBoard[i] === player));
-}
-
-function highlightWin(player) {
-  winCombos.forEach(combo => {
-    if (combo.every(i => gameBoard[i] === player)) {
-      document.querySelectorAll('.cell').forEach((cell, i) => {
-        if (combo.includes(i)) cell.classList.add('win', player);
-      });
-    }
-  });
-}
-
-function endGame() {
-  gameOver = true;
-  document.getElementById("newGameBtn").classList.add("visible");
-}
-
-function startNewGame() {
-  gameOver = false;
-  gameBoard = Array(9).fill('');
-  document.getElementById("newGameBtn").classList.remove("visible");
-  gameCount++;
-  currentPlayer = (gameCount % 2 === 1) ? 'O' : 'X';
-  renderBoard();
-  if (currentPlayer === 'O') setTimeout(botMove, 500);
-}
-
-function toggleDarkMode() {
-  document.body.classList.toggle("dark");
-}
-
-function showPayBtn() {
-  document.getElementById('payBtn').classList.add('visible');
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  startNewGame();
-  if (typeof window.Pi !== 'undefined') {
-    Pi.init({ version: "2.0", sandbox: true });
-    Pi.authenticate(['payments'], function (payment) {
-      console.log('Incomplete payment found:', payment);
-    }).then(function (auth) {
-      piUserAuthenticated = true;
-      showPayBtn();
-    }).catch(function (error) {
-      console.error('Authentication failed:', error);
+    gameBoard.forEach((val, idx) => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        if (val) cell.classList.add(val); // Dodaj klasu 'X' ili 'O'
+        cell.textContent = val;             // Prikazi 'X' ili 'O'
+        cell.addEventListener('click', () => playerMove(idx)); // Dodaj event listener za klik
+        board.appendChild(cell);
     });
-  } else {
-    console.warn('Pi SDK not loaded. Use Pi Browser.');
-  }
+}
+
+/**
+ * Obradjuje potez igrača.
+ * @param {number} index - Indeks polja na koje je igrač kliknuo.
+ */
+function playerMove(index) {
+    if (gameOver || gameBoard[index] || currentPlayer !== 'X') return;  // Ako je igra završena ili je polje zauzeto, ili nije red na igrača, ne radi ništa
+
+    gameBoard[index] = 'X';         // Postavi vrednost polja na 'X'
+    renderBoard();                   // Renderuj tablu da se prikaže 'X'
+    if (checkEnd('X')) return;        // Proveri da li je igrač pobedio
+    currentPlayer = 'O';         // Prebaci red na protivnika
+    setTimeout(botMove, 500); // Pozovi botov potez sa malimDelay-om
+}
+
+/**
+ * Računa i izvršava potez bota.
+ */
+function botMove() {
+    if (gameOver) return; // Ako je igra završena, ne radi ništa
+
+    let move = -1;
+    const cheatMode = (gameCount + 1) % 10 === 0; // Svaku 10. igru, bot "pusti" igrača da pobedi
+
+    if (!cheatMode) {
+        // Pokušaj da pobedi
+        move = findBestMove('O');
+        if (move === -1) {
+            // Blokiraj igrača
+            move = findBestMove('X');
+        }
+    }
+
+    // Ako bot ne može da pobedi ni da blokira, izaberi nasumično prazno polje
+    if (move === -1) {
+        const emptyCells = gameBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+        move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    }
+
+    gameBoard[move] = 'O';         // Postavi vrednost polja na 'O'
+    renderBoard();                   // Renderuj tablu da se prikaže 'O'
+    if (checkEnd('O')) return;        // Proveri da li je bot pobedio
+    currentPlayer = 'X';         // Prebaci red na igrača
+}
+
+/**
+ * Pronalazi najbolji mogući potez za datog igrača ('X' ili 'O').
+ * @param {string} player - Igrač za kojeg se traži potez.
+ * @returns {number} - Indeks polja za najbolji potez, ili -1 ako nema dobrog poteza.
+ */
+function findBestMove(player) {
+    for (let combo of winCombos) {
+        const [a, b, c] = combo;
+        const line = [gameBoard[a], gameBoard[b], gameBoard[c]];
+        if (line.filter(x => x === player).length === 2 && line.includes('')) {
+            return combo[line.indexOf('')]; // Vrati indeks praznog polja u potencijalnoj pobedničkoj liniji
+        }
+    }
+    return -1; // Ako nema potencijalne pobede ili blokade, vrati -1
+}
+
+/**
+ * Proverava da li je igra završena (pobeda ili nerešeno).
+ * @param {string} player - Igrač koji je poslednji igrao.
+ * @returns {boolean} - True ako je igra završena, false inače.
+ */
+function checkEnd(player) {
+    if (checkWin(player)) {
+        highlightWin(player);
+        endGame();
+        return true;
+    }
+    if (!gameBoard.includes('')) {
+        endGame();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Proverava da li je dati igrač pobedio.
+ * @param {string} player - Igrač za kojeg se proverava pobeda.
+ * @returns {boolean} - True ako je igrač pobedio, false inače.
+ */
+function checkWin(player) {
+    return winCombos.some(combo => combo.every(i => gameBoard[i] === player));
+}
+
+/**
+ * Osvetljava pobedničku liniju.
+ * Dodaje CSS klasu 'win' ćelijama koje čine pobedničku liniju.
+ * @param {string} player - Pobednik ('X' ili 'O').
+ */
+function highlightWin(player) {
+    winCombos.forEach(combo => {
+        if (combo.every(i => gameBoard[i] === player)) {
+            document.querySelectorAll('.cell').forEach((cell, i) => {
+                if (combo.includes(i)) {
+                    cell.classList.add('win', player); // Dodaj klasu 'win' i 'X' ili 'O'
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Postavlja zastavicu gameOver na true i prikazuje dugme za novu igru.
+ */
+function endGame() {
+    gameOver = true;
+    document.getElementById("newGameBtn").classList.add("visible"); // Prikazi dugme za novu igru
+}
+
+/**
+ * Pokreće novu igru.
+ * Resetuje stanje igre, sakriva dugme za novu igru i renderuje tablu.
+ */
+function startNewGame() {
+    gameOver = false;
+    gameBoard = Array(9).fill(''); // Resetuj tablu
+    document.getElementById("newGameBtn").classList.remove("visible"); // Sakrij dugme za novu igru
+    gameCount++;
+    currentPlayer = 'X';         // Igrač uvek igra prvi
+    renderBoard();                   // Renderuj tablu
+}
+
+/**
+ * Menja temu (dark/light mode).
+ */
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+}
+
+/**
+ * Prikazuje dugme za plaćanje Pi-om.
+ */
+function showPayBtn() {
+    document.getElementById('payBtn').classList.add('visible');
+}
+
+/**
+ * Inicijalizuje Pi SDK i autentifikuje korisnika.
+ */
+window.addEventListener("DOMContentLoaded", () => {
+    startNewGame(); // Pokreni igru kada se učita stranica
+
+    if (typeof window.Pi !== 'undefined') {
+        Pi.init({ version: "2.0", sandbox: true }); // Inicijalizuj Pi SDK
+        Pi.authenticate(['payments'], (payment) => {
+            console.log('Incomplete payment found:', payment);
+        }).then((auth) => {
+            piUserAuthenticated = true;
+            showPayBtn(); // Prikazi dugme za plaćanje nakon autentifikacije
+             console.log("Authentication successful!");
+        }).catch((error) => {
+            console.error('Authentication failed:', error);
+        });
+    } else {
+        console.warn('Pi SDK not loaded. Use Pi Browser.');
+    }
 });
 
+/**
+ * Pokreće proces plaćanja Pi-om.
+ */
 function processPiPayment() {
-  if (!piUserAuthenticated) return;
-  Pi.createPayment({
-    amount: 0.01,
-    memo: "Tic Tac Toe Game",
-    metadata: { purpose: "Play Win" },
-    to: "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP"
-  }, {
-    onReadyForServerApproval: paymentId => console.log("Approve: ", paymentId),
-    onReadyForServerCompletion: (paymentId, txid) => console.log("✅ Payment complete: " + txid),
-    onCancel: paymentId => console.log("❌ Cancelled: ", paymentId),
-    onError: error => console.log("❌ Error: " + error.message)
-  });
+    if (!piUserAuthenticated) return; // Ako korisnik nije autentifikovan, ne radi ništa
+
+    Pi.createPayment({
+        amount: 0.01,          // Iznos plaćanja
+        memo: "Tic Tac Toe Game - Win Payment", // Opis plaćanja
+        metadata: { purpose: "Play Win" }, // Dodatne informacije
+        to: "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP"  // Tvoja Pi wallet adresa
+    }, {
+        onReadyForServerApproval: (paymentId) => {
+            console.log("Approve: ", paymentId);
+            // Ovde šalješ paymentId svom serveru na odobrenje
+            sendPaymentIdToServer(paymentId); // Pozovi funkciju za slanje paymentId na server
+        },
+        onReadyForServerCompletion: (paymentId, txid) => {
+            console.log("✅ Payment complete: " + txid);
+            // Ovde ažuriraš stanje igre nakon uspešnog plaćanja
+            startNewGame();
+        },
+        onCancel: (paymentId) => {
+            console.log("❌ Cancelled: ", paymentId);
+        },
+        onError: (error) => {
+            console.log("❌ Error: " + error.message);
+        }
+    });
+}
+
+/**
+ * Šalje paymentId tvom serveru na obradu.
+ * Ova funkcija je placeholder. Treba je implementirati da komunicira sa tvojim serverom.
+ * @param {string} paymentId - ID plaćanja koji se šalje serveru.
+ */
+function sendPaymentIdToServer(paymentId) {
+    // Ovde treba da implementiraš AJAX ili fetch poziv svom serveru.
+    // Na primer:
+    fetch('/api/payment/approve', { // Podesi URL svog servera
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ paymentId: paymentId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("Server potvrdio plaćanje:", data);
+            // Ovde možeš da ažuriraš UI ako je potrebno, npr:
+            // alert('Plaćanje uspešno! Čestitamo na pobedi!');
+            startNewGame(); // Pokreni novu igru
+        } else {
+            console.error("Greška sa servera:", data);
+            alert('Došlo je do greške: ' + data.message); // Prikaži grešku korisniku
+        }
+    })
+    .catch(error => {
+        console.error("Greška pri komunikaciji sa serverom:", error);
+        alert('Greška pri komunikaciji sa serverom!');
+    });
 }
 </script>
-
 </body>
 </html>
