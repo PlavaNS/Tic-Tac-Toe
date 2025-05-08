@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <meta charset="UTF-8">
   <title>Tic Tac Toe</title>
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     :root {
@@ -103,6 +103,7 @@
       border-radius: 10px;
       cursor: pointer;
       margin-bottom: 20px;
+      display: none;
     }
     #payBtn:hover { opacity: 0.9; }
 
@@ -121,7 +122,7 @@
 
 <div id="game"></div>
 <button id="newGameBtn" aria-label="New Game">New Game</button>
-<button id="payBtn" disabled>Pay with Pi</button>
+<button id="payBtn" onclick="processPiPayment()">Pay with Pi</button>
 <button id="darkToggle" aria-label="Toggle theme">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/>
@@ -132,7 +133,7 @@
 const game = document.getElementById('game');
 const newGameBtn = document.getElementById('newGameBtn');
 const darkToggle = document.getElementById('darkToggle');
-const payBtn = document.getElementById('payBtn'); // Add reference to the payment button
+let piUserAuthenticated = false;
 
 let board;
 let gameActive;
@@ -280,38 +281,31 @@ darkToggle.addEventListener('click', () => {
 });
 
 if (window.Pi) {
-  window.Pi.init({ version: "2.0", sandbox: true });
-
+  Pi.init({ version: "2.0", sandbox: true });
   const scopes = ['payments'];
-  Pi.authenticate(scopes, function(payment) {
+  const appWallet = "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP";
+  Pi.authenticate(scopes, function (payment) {
     console.log('Incomplete payment found:', payment);
-  }).then(function(auth) {
+  }).then(function (auth) {
     console.log('Authenticated:', auth);
-    // Introduce a small delay before allowing payment
-    setTimeout(() => {
-      payBtn.onclick = processPiPayment;
-      payBtn.disabled = false; // Enable the button if it was initially disabled
-    }, 500); // Adjust the delay as needed (in milliseconds)
-  }).catch(function(error) {
+    piUserAuthenticated = true;
+    document.getElementById('payBtn').style.display = 'inline-block';
+  }).catch(function (error) {
     console.error('Authentication failed:', error);
-    alert("Authentication failed: " + error.message);
   });
-
-  // Initially disable the payment button to prevent premature clicks
-  payBtn.onclick = () => {
-    alert("Please wait for authentication to complete.");
-  };
-  payBtn.disabled = true;
 }
 
-initGame();
-
 async function processPiPayment() {
+  if (!piUserAuthenticated) {
+    alert("Please wait. Still authenticating Pi user...");
+    return;
+  }
   try {
     const paymentData = {
       amount: 0.01,
       memo: "Tic Tac Toe test payment",
-      metadata: { purpose: "testing" }
+      metadata: { purpose: "testing" },
+      to: "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP"
     };
 
     const callbacks = {
@@ -335,6 +329,8 @@ async function processPiPayment() {
     alert("Pi payment failed: " + err.message);
   }
 }
+
+initGame();
 </script>
 
 </body>
