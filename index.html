@@ -121,7 +121,7 @@
 
 <div id="game"></div>
 <button id="newGameBtn" aria-label="New Game">New Game</button>
-<button id="payBtn" onclick="processPiPayment()">Pay with Pi</button>
+<button id="payBtn" disabled>Pay with Pi</button>
 <button id="darkToggle" aria-label="Toggle theme">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/>
@@ -132,6 +132,7 @@
 const game = document.getElementById('game');
 const newGameBtn = document.getElementById('newGameBtn');
 const darkToggle = document.getElementById('darkToggle');
+const payBtn = document.getElementById('payBtn'); // Add reference to the payment button
 
 let board;
 let gameActive;
@@ -286,9 +287,21 @@ if (window.Pi) {
     console.log('Incomplete payment found:', payment);
   }).then(function(auth) {
     console.log('Authenticated:', auth);
+    // Introduce a small delay before allowing payment
+    setTimeout(() => {
+      payBtn.onclick = processPiPayment;
+      payBtn.disabled = false; // Enable the button if it was initially disabled
+    }, 500); // Adjust the delay as needed (in milliseconds)
   }).catch(function(error) {
     console.error('Authentication failed:', error);
+    alert("Authentication failed: " + error.message);
   });
+
+  // Initially disable the payment button to prevent premature clicks
+  payBtn.onclick = () => {
+    alert("Please wait for authentication to complete.");
+  };
+  payBtn.disabled = true;
 }
 
 initGame();
