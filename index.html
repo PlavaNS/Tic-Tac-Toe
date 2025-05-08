@@ -19,19 +19,6 @@
       --highlight-O: #e74c3c;
       --moon-color: #111;
     }
-    body.dark {
-      --bg: #111;
-      --text: #f5f5f5;
-      --cell-bg: #1e1e1e;
-      --hover-bg: #333;
-      --x-color: #e1e5eb;
-      --highlight-X: #e1e5eb;
-      --button-bg: #e1e5eb;
-      --button-text: #111;
-      --o-color: #e74c3c;
-      --highlight-O: #e74c3c;
-      --moon-color: #f5f5f5;
-    }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -41,7 +28,6 @@
       padding: 20px;
       background: var(--bg);
       color: var(--text);
-      transition: background 0.3s, color 0.3s;
     }
     #game {
       display: grid;
@@ -61,27 +47,19 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
+      transition: background 0.2s;
       color: var(--x-color);
     }
-    .cell:active { transform: scale(1.05); }
     .cell:hover { background: var(--hover-bg); }
-    .X { color: var(--x-color); text-shadow: 1px 1px 4px #7f8c8d; }
-    .O { color: var(--o-color); text-shadow: 1px 1px 4px #ffaaaa; }
+    .X { color: var(--x-color); }
+    .O { color: var(--o-color); }
     .win.X {
       box-shadow: 0 0 20px var(--highlight-X);
-      animation: shake 0.5s, pulse 2s infinite;
+      animation: pulse 2s infinite;
     }
     .win.O {
       box-shadow: 0 0 20px var(--highlight-O);
-      animation: shake 0.5s, pulse 2s infinite;
-    }
-    @keyframes shake {
-      0% { transform: translate(0); }
-      25% { transform: translate(-5px, 0); }
-      50% { transform: translate(5px, 0); }
-      75% { transform: translate(-5px, 0); }
-      100% { transform: translate(0); }
+      animation: pulse 2s infinite;
     }
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
@@ -89,15 +67,14 @@
     }
     #newGameBtn, #payBtn {
       font-size: 1.2rem;
-      font-weight: bold;
-      border: none;
       padding: 10px 20px;
       border-radius: 10px;
       cursor: pointer;
       margin: 10px;
+      border: none;
     }
     #newGameBtn {
-      background: none;
+      background: transparent;
       color: var(--moon-color);
       text-decoration: underline;
       display: none;
@@ -106,17 +83,7 @@
     #payBtn {
       background: var(--button-bg);
       color: var(--button-text);
-      display: block;
     }
-    #darkToggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-    #darkToggle svg { width: 42px; height: 42px; fill: var(--text); }
   </style>
 </head>
 <body>
@@ -124,16 +91,12 @@
 <div id="game"></div>
 <button id="newGameBtn" onclick="startNewGame()">New Game</button>
 <button id="payBtn" onclick="processPiPayment()">Pay with Pi</button>
-<button id="darkToggle" onclick="toggleDarkMode()" aria-label="Toggle Theme">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
-</button>
 
 <script>
 let currentPlayer = 'X';
 let gameBoard = Array(9).fill('');
 let gameOver = false;
 let gameCount = 0;
-let piUserAuthenticated = false;
 
 const winCombos = [
   [0,1,2],[3,4,5],[6,7,8],
@@ -230,60 +193,51 @@ function startNewGame() {
   if (currentPlayer === 'O') setTimeout(botMove, 400);
 }
 
-function toggleDarkMode() {
-  document.body.classList.toggle("dark");
-}
-
 function processPiPayment() {
-  if (!piUserAuthenticated) return;
-  Pi.createPayment({
-    amount: 0.01,
-    memo: "Tic Tac Toe Game",
-    metadata: { purpose: "Game Payment" },
-    to: "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP"
-  }, {
-    onReadyForServerApproval: (paymentId) => {
-      fetch("https://pi-pay-backend.markoplavsicns.repl.co/payments/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId })
-      });
-    },
-    onReadyForServerCompletion: (paymentId, txid) => {
-      fetch("https://pi-pay-backend.markoplavsicns.repl.co/payments/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId, txid })
-      });
-      alert("✅ Payment complete!");
-    },
-    onCancel: (paymentId) => {
-      console.log("❌ Cancelled: ", paymentId);
-    },
-    onError: (error) => {
-      console.log("❌ Error: " + error.message);
-    }
+  Pi.authenticate(['payments'], function (payment) {
+    console.log('Incomplete payment found:', payment);
+  }).then(function (auth) {
+    Pi.createPayment({
+      amount: 0.01,
+      memo: "Tic Tac Toe Game",
+      metadata: { purpose: "Game Payment" },
+      to: "GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP"
+    }, {
+      onReadyForServerApproval: (paymentId) => {
+        fetch("https://3160ef5e-1154-4c46-b75a-1a08fd411299-00-134mnkbjd9bne.picard.replit.dev/payments/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentId })
+        });
+      },
+      onReadyForServerCompletion: (paymentId, txid) => {
+        fetch("https://3160ef5e-1154-4c46-b75a-1a08fd411299-00-134mnkbjd9bne.picard.replit.dev/payments/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentId, txid })
+        });
+        alert("✅ Payment complete!");
+      },
+      onCancel: (paymentId) => {
+        console.log("❌ Cancelled: ", paymentId);
+      },
+      onError: (error) => {
+        console.log("❌ Error: " + error.message);
+      }
+    });
+  }).catch(function (error) {
+    alert("❌ Pi authentication failed. Use Pi Browser.");
+    console.error(error);
   });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   startNewGame();
-  if (typeof window.Pi !== 'undefined') {
-    Pi.init({
-      version: "2.0",
-      sandbox: true,
-      appKey: "c9qcd5pvq8uilr0ymhj6feag97ftrllyjeb6uib1bmnwjsk6u59ushil1xibxlae"
-    });
-    Pi.authenticate(['payments'], function (payment) {
-      console.log('Incomplete payment found:', payment);
-    }).then(function (auth) {
-      piUserAuthenticated = true;
-    }).catch(function (error) {
-      console.error('Authentication failed:', error);
-    });
-  } else {
-    console.warn('Pi SDK not loaded. Use Pi Browser.');
-  }
+  Pi.init({
+    version: "2.0",
+    sandbox: true,
+    appKey: "c9qcd5pvq8uilr0ymhj6feag97ftrllyjeb6uib1bmnwjsk6u59ushil1xibxlae"
+  });
 });
 </script>
 
