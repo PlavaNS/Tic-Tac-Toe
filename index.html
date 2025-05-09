@@ -157,43 +157,112 @@ let piUserAuthenticated = false;
 const clickSound = document.getElementById('clickAudio');
 const botSound = document.getElementById('botAudio');
 const winSound = document.getElementById('winAudio');
-const winCombos = [ [0,1,2],[3,4,5],[6,7,8], [0,3,6],[1,4,7],[2,5,8], [0,4,8],[2,4,6] ];
+const winCombos = [ [0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6] ];
 
 function renderBoard() {
-  const board = document.getElementById('game'); board.innerHTML = '';
+  const board = document.getElementById('game');
+  board.innerHTML = '';
   gameBoard.forEach((val, idx) => {
-    const cell = document.createElement('div'); cell.classList.add('cell');
-    if(val) cell.classList.add(val);
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    if (val) cell.classList.add(val);
     cell.textContent = val;
     cell.addEventListener('click', () => playerMove(idx));
     board.appendChild(cell);
   });
 }
-function playerMove(i) {
-  if(gameOver||gameBoard[i]||currentPlayer!=='X')return;
-  clickSound.play(); gameBoard[i]='X'; renderBoard(); if(checkEnd('X'))return;
-  currentPlayer='O'; setTimeout(botMove,400);
-}
-function botMove() {
-  if(gameOver)return;
-  let move=findBestMove('O'); if(move===-1)move=findBestMove('X');
-  if(move===-1){const empty=gameBoard.map((v,i)=>v===''?i:null).filter(i=>i!==null);move=empty[Math.floor(Math.random()*empty.length)];}
-  botSound.play(); gameBoard[move]='O'; renderBoard(); if(checkEnd('O'))return; currentPlayer='X';
-}
-function findBestMove(p){for(const c of winCombos){const line=[gameBoard[c[0]],gameBoard[c[1]],gameBoard[c[2]]];if(line.filter(x=>x===p).length===2&&line.includes(''))return c[line.indexOf('')];}return-1;}
-function checkEnd(p){if(checkWin(p)){highlightWin(p);winSound.play();endGame();return true;}if(!gameBoard.includes('')){endGame();return true;}return false;}
-function checkWin(p){return winCombos.some(c=>c.every(i=>gameBoard[i]===p));}
-function highlightWin(p){const cells=document.querySelectorAll('.cell');winCombos.forEach(c=>{if(c.every(i=>gameBoard[i]===p))c.forEach(i=>cells[i].classList.add('win',p));});}
-function endGame(){gameOver=true;document.getElementById('newGameBtn').classList.add('visible');}
-function startNewGame(){gameOver=false;gameBoard=Array(9).fill('');renderBoard();document.getElementById('newGameBtn').classList.remove('visible');gameCount++;currentPlayer=(gameCount%2?'X':'O');if(currentPlayer==='O')setTimeout(botMove,400);}
 
-function toggleDarkMode(){
-  document.body.classList.toggle('dark');
-  if (!document.body.classList.contains('dark') && !brushActive) {
-    for(let key in originalVars) root.style.setProperty(`--${key}`, originalVars[key]);
+function playerMove(i) {
+  if (gameOver || gameBoard[i] || currentPlayer !== 'X') return;
+  clickSound.play();
+  gameBoard[i] = 'X';
+  renderBoard();
+  if (checkEnd('X')) return;
+  currentPlayer = 'O';
+  setTimeout(botMove, 400);
+}
+
+function botMove() {
+  if (gameOver) return;
+  let move = findBestMove('O');
+  if (move === -1) move = findBestMove('X');
+  if (move === -1) {
+    const empty = gameBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+    move = empty[Math.floor(Math.random() * empty.length)];
+  }
+  botSound.play();
+  gameBoard[move] = 'O';
+  renderBoard();
+  if (checkEnd('O')) return;
+  currentPlayer = 'X';
+}
+
+function findBestMove(p) {
+  for (const c of winCombos) {
+    const line = [gameBoard[c[0]], gameBoard[c[1]], gameBoard[c[2]]];
+    if (line.filter(x => x === p).length === 2 && line.includes('')) {
+      return c[line.indexOf('')];
+    }
+  }
+  return -1;
+}
+
+function checkEnd(p) {
+  if (checkWin(p)) {
+    highlightWin(p);
+    winSound.play();
+    endGame();
+    return true;
+  }
+  if (!gameBoard.includes('')) {
+    endGame();
+    return true;
+  }
+  return false;
+}
+
+function checkWin(p) {
+  return winCombos.some(c => c.every(i => gameBoard[i] === p));
+}
+
+function highlightWin(p) {
+  const cells = document.querySelectorAll('.cell');
+  winCombos.forEach(c => {
+    if (c.every(i => gameBoard[i] === p)) {
+      c.forEach(i => cells[i].classList.add('win', p));
+    }
+  });
+}
+
+function endGame() {
+  gameOver = true;
+  document.getElementById('newGameBtn').classList.add('visible');
+}
+
+function startNewGame() {
+  gameOver = false;
+  gameBoard = Array(9).fill('');
+  renderBoard();
+  document.getElementById('newGameBtn').classList.remove('visible');
+  gameCount++;
+  currentPlayer = (gameCount % 2 ? 'X' : 'O');
+  if (currentPlayer === 'O') setTimeout(botMove, 400);
+}
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark');
+  if (!isDark) {
+    brushActive = false;
+    root.style.setProperty('--bg', originalVars.bg);
+    root.style.setProperty('--text', originalVars.text);
+    root.style.setProperty('--cell-bg', originalVars.cellBg);
+    root.style.setProperty('--hover-bg', originalVars.hoverBg);
+    root.style.setProperty('--x-color', originalVars.xColor);
+    root.style.setProperty('--o-color', originalVars.oColor);
   }
 }
-function toggleBrushTheme(){
+
+function toggleBrushTheme() {
   brushActive = true;
   const rand = () => '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
   root.style.setProperty('--bg', rand());
@@ -202,7 +271,31 @@ function toggleBrushTheme(){
   root.style.setProperty('--cell-bg', '#ffffff');
   root.style.setProperty('--hover-bg', '#f0f0f0');
 }
-function processPiPayment(){if(!piUserAuthenticated)return;Pi.createPayment({amount:0.01,memo:'Tic Tac Toe Game',metadata:{purpose:'Game Payment'},to:'GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP'},{onReadyForServerApproval:id=>console.log('Approve:',id),onReadyForServerCompletion:(id,tx)=>console.log('✅',tx),onCancel:id=>console.log('❌ Cancelled',id),onError:err=>console.log('❌',err.message)});}window.addEventListener('DOMContentLoaded',()=>{renderBoard();startNewGame();document.getElementById('payBtn').style.display='block';if(typeof Pi!=='undefined'){Pi.init({version:'2.0',sandbox:true});Pi.authenticate(['payments']).then(a=>piUserAuthenticated=true).catch(e=>console.error(e));}});
+
+function processPiPayment() {
+  if (!piUserAuthenticated) return;
+  Pi.createPayment({
+    amount: 0.01,
+    memo: 'Tic Tac Toe Game',
+    metadata: { purpose: 'Game Payment' },
+    to: 'GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP'
+  }, {
+    onReadyForServerApproval: id => console.log('Approve:', id),
+    onReadyForServerCompletion: (id, tx) => console.log('✅', tx),
+    onCancel: id => console.log('❌ Cancelled', id),
+    onError: err => console.log('❌', err.message)
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderBoard();
+  startNewGame();
+  document.getElementById('payBtn').style.display = 'block';
+  if (typeof Pi !== 'undefined') {
+    Pi.init({ version: '2.0', sandbox: true });
+    Pi.authenticate(['payments']).then(a => piUserAuthenticated = true).catch(e => console.error(e));
+  }
+});
 </script>
 
 </body>
