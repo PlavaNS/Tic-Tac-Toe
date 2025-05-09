@@ -12,8 +12,8 @@
       --cell-bg: white;
       --hover-bg: #f0f0f0;
       --x-color: #2c3e50;
-      --highlight: var(--newgame-bg);
       --o-color: #e74c3c;
+      --highlight: var(--newgame-bg);
       --newgame-bg: #28a745;
       --pay-bg: #3498db;
       --btn-text: #fff;
@@ -24,8 +24,8 @@
       --cell-bg: #1e1e1e;
       --hover-bg: #333;
       --x-color: #e1e5eb;
-      --highlight: var(--newgame-bg);
       --o-color: #e74c3c;
+      --highlight: var(--newgame-bg);
       --newgame-bg: #28a745;
       --pay-bg: #e1e5eb;
       --btn-text: #111;
@@ -39,7 +39,7 @@
       padding: 20px;
       background: var(--bg);
       color: var(--text);
-      transition: background 0.3s ease, color 0.3s ease;
+      transition: background 0.3s, color 0.3s;
     }
     #game {
       display: grid;
@@ -69,7 +69,7 @@
       box-shadow: 0 0 10px var(--highlight);
     }
     @keyframes strongShake {
-      0%,100% { transform: translate(0,0); }
+      0%,100% { transform: translate(0); }
       10% { transform: translate(-8px,0); }
       20% { transform: translate(8px,0); }
       30% { transform: translate(-6px,0); }
@@ -79,7 +79,7 @@
       70% { transform: translate(-2px,0); }
       80% { transform: translate(2px,0); }
     }
-    #newGameBtn, #payBtn {
+    button {
       font-size: 1.2rem;
       font-weight: bold;
       border: none;
@@ -88,208 +88,184 @@
       cursor: pointer;
       margin: 10px;
       color: var(--btn-text);
+    }
+    #newGameBtn {
+      background: var(--newgame-bg);
       display: none;
     }
-    #payBtn { background: var(--pay-bg); display: block; }
-    #newGameBtn { background: var(--newgame-bg); }
-    #newGameBtn.visible { display: block; }
-    /* icons styling with transitions */
+    #newGameBtn.visible {
+      display: block;
+    }
+    #payBtn {
+      background: var(--pay-bg);
+    }
     #brushIcon, #darkToggle svg {
-      width: 42px;
-      height: 42px;
+      width: 42px; height: 42px;
       filter: invert(0) grayscale(100%);
       cursor: pointer;
-      transition: filter 0.3s ease, transform 0.3s ease;
+      transition: filter 0.3s, transform 0.3s;
     }
     body.dark #brushIcon, body.dark #darkToggle svg {
       filter: invert(1) grayscale(100%);
     }
-    #brushIcon:hover, #darkToggle:hover svg {
-      transform: scale(1.1);
-    }
+    #brushIcon:hover, #darkToggle:hover svg { transform: scale(1.1); }
     #brushIcon {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1000;
+      position: fixed; bottom: 20px; left: 20px; z-index: 1000;
     }
     #darkToggle {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      z-index: 1000;
+      position: fixed; bottom: 20px; right: 20px;
+      background: none; border: none; z-index: 1000;
     }
   </style>
 </head>
 <body>
-
-<div id="game"></div>
-<audio id="clickAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
-<audio id="botAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
-<audio id="winAudio" src="correct.mp3" preload="auto"></audio>
-<button id="newGameBtn" onclick="startNewGame()">New Game</button>
-<button id="payBtn" onclick="processPiPayment()">Pay with Pi</button>
-<img id="brushIcon" src="theme.png" alt="Brush Icon" onclick="toggleBrushTheme()" />
-<button id="darkToggle" aria-label="Toggle Dark Mode">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onclick="toggleDarkMode()">
-    <path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/>
-  </svg>
-</button>
-
-<script>
-const root = document.documentElement;
-const originalVars = {
-  bg: getComputedStyle(root).getPropertyValue('--bg').trim(),
-  text: getComputedStyle(root).getPropertyValue('--text').trim(),
-  cellBg: getComputedStyle(root).getPropertyValue('--cell-bg').trim(),
-  hoverBg: getComputedStyle(root).getPropertyValue('--hover-bg').trim(),
-  xColor: getComputedStyle(root).getPropertyValue('--x-color').trim(),
-  oColor: getComputedStyle(root).getPropertyValue('--o-color').trim()
-};
-let brushActive = false;
-let gameBoard = Array(9).fill('');
-let currentPlayer = 'X';
-let gameOver = false;
-let gameCount = 0;
-let piUserAuthenticated = false;
-
-const clickSound = document.getElementById('clickAudio');
-const botSound = document.getElementById('botAudio');
-const winSound = document.getElementById('winAudio');
-const winCombos = [ [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6] ];
-
-function renderBoard() {
-  const board = document.getElementById('game');
-  board.innerHTML = '';
-  gameBoard.forEach((val, idx) => {
-    const cell = document.createElement('div');
-    cell.classList.add('cell');
-    if (val) cell.classList.add(val);
-    cell.textContent = val;
-    cell.addEventListener('click', () => playerMove(idx));
-    board.appendChild(cell);
-  });
-}
-
-function playerMove(i) {
-  if (gameOver || gameBoard[i] || currentPlayer !== 'X') return;
-  clickSound.play();
-  gameBoard[i] = 'X';
-  renderBoard();
-  if (checkEnd('X')) return;
-  currentPlayer = 'O';
-  setTimeout(botMove, 400);
-}
-
-function botMove() {
-  if (gameOver) return;
-  let move = findBestMove('O');
-  if (move === -1) move = findBestMove('X');
-  if (move === -1) {
-    const empty = gameBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
-    move = empty[Math.floor(Math.random() * empty.length)];
-  }
-  botSound.play();
-  gameBoard[move] = 'O';
-  renderBoard();
-  if (checkEnd('O')) return;
-  currentPlayer = 'X';
-}
-
-function findBestMove(p) {
-  for (const combo of winCombos) {
-    const [a,b,c] = combo;
-    const line = [gameBoard[a], gameBoard[b], gameBoard[c]];
-    if (line.filter(x => x === p).length === 2 && line.includes('')) {
-      return combo[line.indexOf('')];
+  <div id="game"></div>
+  <audio id="clickAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
+  <audio id="botAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
+  <audio id="winAudio" src="correct.mp3" preload="auto"></audio>
+  <button id="newGameBtn" onclick="startNewGame()">New Game</button>
+  <button id="payBtn" onclick="processPiPayment()" disabled>Pay with Pi</button>
+  <img id="brushIcon" src="theme.png" alt="Brush Icon" onclick="toggleBrushTheme()" />
+  <button id="darkToggle" aria-label="Toggle Dark Mode">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onclick="toggleDarkMode()">
+      <path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/>
+    </svg>
+  </button>
+  <script>
+    const root = document.documentElement;
+    const originalVars = {
+      bg: getComputedStyle(root).getPropertyValue('--bg').trim(),
+      text: getComputedStyle(root).getPropertyValue('--text').trim(),
+      cellBg: getComputedStyle(root).getPropertyValue('--cell-bg').trim(),
+      hoverBg: getComputedStyle(root).getPropertyValue('--hover-bg').trim(),
+      xColor: getComputedStyle(root).getPropertyValue('--x-color').trim(),
+      oColor: getComputedStyle(root).getPropertyValue('--o-color').trim()
+    };
+    let brushActive = false;
+    let gameBoard = Array(9).fill('');
+    let currentPlayer = 'X';
+    let gameOver = false;
+    let gameCount = 0;
+    let piUserAuthenticated = false;
+    const clickSound = document.getElementById('clickAudio');
+    const botSound = document.getElementById('botAudio');
+    const winSound = document.getElementById('winAudio');
+    const winCombos = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+    function renderBoard() {
+      const board = document.getElementById('game'); board.innerHTML = '';
+      gameBoard.forEach((val,i) => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        if(val) cell.classList.add(val);
+        cell.textContent = val;
+        cell.addEventListener('click', () => playerMove(i));
+        board.appendChild(cell);
+      });
     }
-  }
-  return -1;
-}
-
-function checkEnd(p) {
-  if (checkWin(p)) {
-    highlightWin(p);
-    winSound.play();
-    endGame();
-    return true;
-  }
-  if (!gameBoard.includes('')) {
-    endGame();
-    return true;
-  }
-  return false;
-}
-
-function checkWin(p) {
-  return winCombos.some(combo => combo.every(index => gameBoard[index] === p));
-}
-
-function highlightWin(p) {
-  const cells = document.querySelectorAll('.cell');
-  winCombos.forEach(combo => {
-    if (combo.every(i => gameBoard[i] === p)) {
-      combo.forEach(i => cells[i].classList.add('win', p));
+    function playerMove(i) {
+      if(gameOver||gameBoard[i]||currentPlayer!=='X')return;
+      clickSound.play();gameBoard[i]='X';renderBoard();
+      if(checkEnd('X'))return;
+      currentPlayer='O';setTimeout(botMove,400);
     }
-  });
-}
-
-function endGame() {
-  gameOver = true;
-  document.getElementById('newGameBtn').classList.add('visible');
-}
-
-function startNewGame() {
-  gameOver = false;
-  gameBoard = Array(9).fill('');
-  renderBoard();
-  document.getElementById('newGameBtn').classList.remove('visible');
-  gameCount++;
-  currentPlayer = (gameCount % 2 ? 'X' : 'O');
-  if (currentPlayer === 'O') setTimeout(botMove, 400);
-}
-
-function toggleDarkMode() {
-  const isDark = document.body.classList.toggle('dark');
-  if (!isDark) {
-    brushActive = false;
-    Object.entries(originalVars).forEach(([key,val]) => root.style.setProperty(`--${key}`, val));
-  }
-}
-
-function toggleBrushTheme() {
-  brushActive = true;
-  const rand = () => '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
-  root.style.setProperty('--bg', rand());
-  root.style.setProperty('--x-color', rand());
-  root.style.setProperty('--o-color', rand());
-  root.style.setProperty('--cell-bg', '#ffffff');
-  root.style.setProperty('--hover-bg', '#f0f0f0');
-}
-
-function processPiPayment() {
-  if (!piUserAuthenticated) return;
-  Pi.createPayment({ amount: 0.01, memo: 'Tic Tac Toe Game', metadata: { purpose: 'Game Payment' }, to: 'GD3IVAZNBCCETNA7MT5SHBJXNAIJ7Q44GURPGLBWAUCS2TH4K5PALJHP' }, {
-    onReadyForServerApproval: id => console.log('Approve:', id),
-    onReadyForServerCompletion: (id, tx) => console.log('✅', tx),
-    onCancel: id => console.log('❌ Cancelled', id),
-    onError: err => console.log('❌', err.message)
-  });
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  renderBoard();
-  startNewGame();
-  document.getElementById('payBtn').style.display = 'block';
-  if (typeof Pi !== 'undefined') {
-    Pi.init({ version: '2.0', sandbox: true });
-    Pi.authenticate(['payments']).then(() => piUserAuthenticated = true).catch(e => console.error(e));
-  }
-});
-</script>
-
+    function botMove() {
+      if(gameOver)return;
+      let move = findBestMove('O');
+      if(move===-1) move = findBestMove('X');
+      if(move===-1) {
+        const empty = gameBoard.map((v,i)=>v===''?i:null).filter(n=>n!==null);
+        move = empty[Math.floor(Math.random()*empty.length)];
+      }
+      botSound.play();gameBoard[move]='O';renderBoard();
+      if(checkEnd('O'))return;
+      currentPlayer='X';
+    }
+    function findBestMove(p) {
+      for(const combo of winCombos) {
+        const [a,b,c]=combo;
+        const line=[gameBoard[a],gameBoard[b],gameBoard[c]];
+        if(line.filter(x=>x===p).length===2&&line.includes(''))
+          return combo[line.indexOf('')];
+      }
+      return -1;
+    }
+    function checkEnd(p) {
+      if(checkWin(p)) { highlightWin(p); winSound.play(); endGame(); return true; }
+      if(!gameBoard.includes('')) { endGame(); return true; }
+      return false;
+    }
+    function checkWin(p) {
+      return winCombos.some(c=>c.every(i=>gameBoard[i]===p));
+    }
+    function highlightWin(p) {
+      document.querySelectorAll('.cell').forEach((cell,i)=>{});
+      winCombos.forEach(c=>{
+        if(c.every(i=>gameBoard[i]===p))
+          c.forEach(i=>document.querySelectorAll('.cell')[i].classList.add('win',p));
+      });
+    }
+    function endGame() {
+      gameOver=true;
+      document.getElementById('newGameBtn').classList.add('visible');
+    }
+    function startNewGame() {
+      gameOver=false;gameBoard=Array(9).fill('');renderBoard();
+      document.getElementById('newGameBtn').classList.remove('visible');
+      gameCount++;
+      currentPlayer = (gameCount%2?'X':'O');
+      if(currentPlayer==='O') setTimeout(botMove,400);
+    }
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark');
+      if(!isDark) {
+        brushActive=false;
+        Object.entries(originalVars).forEach(([k,v])=>root.style.setProperty(`--${k}`,v));
+      }
+    }
+    function toggleBrushTheme() {
+      brushActive=true;
+      const rand=()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
+      root.style.setProperty('--bg',rand());
+      root.style.setProperty('--x-color',rand());
+      root.style.setProperty('--o-color',rand());
+      root.style.setProperty('--cell-bg','#fff');
+      root.style.setProperty('--hover-bg','#f0f0f0');
+    }
+    // Pi SDK setup
+    Pi.init({ version: '2.0' });
+    function onIncompletePaymentFound(payment) {
+      console.log('Incomplete payment:',payment);
+      Pi.completePayment(payment.id)
+        .then(txid=>console.log('Completed pending:',txid))
+        .catch(err=>console.error(err));
+    }
+    Pi.authenticate(['payments'], onIncompletePaymentFound)
+      .then(()=>{
+        piUserAuthenticated=true;
+        document.getElementById('payBtn').disabled=false;
+      })
+      .catch(err=>console.error('Auth error:',err));
+    function processPiPayment() {
+      if(!piUserAuthenticated) return;
+      Pi.createPayment({
+        amount:0.01,
+        memo:'Tic Tac Toe Game',
+        metadata:{purpose:'Game Payment'}
+      },{
+        onReadyForServerApproval:id=>console.log('Approve:',id),
+        onReadyForServerCompletion:(id,tx)=>console.log('Completed:',id,tx),
+        onCancel:id=>console.log('Cancelled:',id),
+        onError:(err,p)=>console.error('Error:',err,p)
+      });
+    }
+    window.addEventListener('DOMContentLoaded',()=>{
+      renderBoard();
+      startNewGame();
+    });
+  </script>
 </body>
 </html>
