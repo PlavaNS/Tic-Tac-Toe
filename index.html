@@ -250,7 +250,20 @@
       document.getElementById('brushIcon').onclick = toggleBrush;
       document.getElementById('darkToggle').onclick = toggleDark;
 
-      Pi.init({version:'2.0',sandbox:true});
+      Pi.init({version:'2.0'});
+      
+      // Handle incomplete payments (e.g. user closed modal before completion)
+      function onIncompletePaymentFound(payment) {
+        console.log('Incomplete payment found:', payment.id);
+        onReadyForServerApproval(payment.id);
+      }
+
+      Pi.authenticate(['payments'], onIncompletePaymentFound)
+        .then(()=>{
+          authenticated = true;
+          document.getElementById('payBtn').disabled = false;
+        })
+        .catch(console.error);
       Pi.authenticate(['payments'])
         .then(()=>{
           authenticated = true;
