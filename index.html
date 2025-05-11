@@ -6,106 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <!-- Pi Browser SDK -->
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-  <!-- IMA HTML5 SDK za rewarded video ads -->
+  <!-- IMA SDK -->
   <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
   <style>
-    :root {
-      --bg: #f5f5f5;
-      --text: #333;
-      --cell-bg: #fff;
-      --hover-bg: #f0f0f0;
-      --x-color: #2c3e50;
-      --o-color: #e74c3c;
-    }
-    body.dark {
-      --bg: #111;
-      --text: #f5f5f5;
-      --cell-bg: #1e1e1e;
-      --hover-bg: #333;
-      --x-color: #e1e5eb;
-      --o-color: #e74c3c;
-    }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      background: var(--bg);
-      color: var(--text);
-      transition: background 0.3s, color 0.3s;
-    }
-    #game {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 12px;
-      margin: 40px 0;
-    }
-    .cell {
-      background: var(--cell-bg);
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      font-size: 4rem;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      color: var(--x-color);
-    }
-    .cell:hover { background: var(--hover-bg); }
-    .X { color: var(--x-color); }
-    .O { color: var(--o-color); }
-    .win.X, .win.O {
-      animation: shake 0.6s ease-in-out;
-      box-shadow: 0 0 10px var(--text);
-    }
-    @keyframes shake {
-      0%,100% { transform: translate(0); }
-      10%,30%,50%,70%,90% { transform: translate(-5px, 0); }
-      20%,40%,60%,80% { transform: translate(5px, 0); }
-    }
-    button {
-      font-size: 1.2rem;
-      font-weight: bold;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 10px;
-    }
-    #newGameBtn {
-      background: #fff;
-      color: #000;
-      display: none;
-    }
-    #newGameBtn.visible { display: block; }
-    body.dark #newGameBtn { background: #000; color: #fff; }
-    #payBtn {
-      background: #3498db;
-      color: #fff;
-    }
-    #brushIcon, #darkToggle svg {
-      filter: invert(0) grayscale(100%);
-      transition: filter 0.3s;
-      cursor: pointer;
-    }
-    body.dark #brushIcon, body.dark #darkToggle svg {
-      filter: invert(1) grayscale(100%);
-    }
-    #brushIcon, #darkToggle {
-      position: fixed;
-      bottom: 20px;
-      width: 42px;
-      height: 42px;
-      z-index: 1000;
-    }
-    #brushIcon { left: 20px; }
-    #darkToggle { right: 20px; background: none; padding: 0; }
-    #darkToggle svg { width: 100%; height: 100%; }
+    :root { --bg:#f5f5f5;--text:#333;--cell-bg:#fff;--hover-bg:#f0f0f0;--x-color:#2c3e50;--o-color:#e74c3c; }
+    body.dark { --bg:#111;--text:#f5f5f5;--cell-bg:#1e1e1e;--hover-bg:#333;--x-color:#e1e5eb;--o-color:#e74c3c; }
+    body{margin:0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;padding:20px;background:var(--bg);color:var(--text);transition:0.3s;}
+    #game{display:grid;grid-template-columns:repeat(3,100px);grid-template-rows:repeat(3,100px);gap:12px;margin:40px 0;}
+    .cell{background:var(--cell-bg);border:2px solid #ccc;border-radius:12px;font-size:4rem;font-weight:bold;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;color:var(--x-color);}
+    .cell:hover{background:var(--hover-bg);} .X{color:var(--x-color);} .O{color:var(--o-color);} .win.X,.win.O{animation:shake 0.6s ease-in-out;box-shadow:0 0 10px var(--text);} @keyframes shake{0%,100%{transform:translate(0)}10%,30%,50%,70%,90%{transform:translate(-5px,0)}20%,40%,60%,80%{transform:translate(5px,0)}}
+    button{font-size:1.2rem;font-weight:bold;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;margin:10px;}
+    #newGameBtn{background:#fff;color:#000;display:none;}#newGameBtn.visible{display:block;}body.dark #newGameBtn{background:#000;color:#fff;}
+    #payBtn{background:#3498db;color:#fff;}#brushIcon,#darkToggle svg{filter:invert(0) grayscale(100%);transition:0.3s;cursor:pointer;}body.dark #brushIcon,body.dark #darkToggle svg{filter:invert(1) grayscale(100%);}#brushIcon,#darkToggle{position:fixed;bottom:20px;width:42px;height:42px;z-index:1000;}#brushIcon{left:20px;}#darkToggle{right:20px;background:none;padding:0;}#darkToggle svg{width:100%;height:100%;}
+    #adContainer{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:2000;}#adVideo{width:100%;height:100%;}
   </style>
 </head>
 <body>
@@ -113,164 +26,31 @@
   <audio id="clickAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
   <audio id="botAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
   <audio id="winAudio" src="correct.mp3" preload="auto"></audio>
-
   <button id="newGameBtn">New Game</button>
   <button id="payBtn" disabled>Pay with Pi</button>
   <img id="brushIcon" src="theme.png" alt="Brush Icon">
-  <button id="darkToggle" aria-label="Toggle Dark Mode">
-    <svg viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
-  </button>
-
+  <button id="darkToggle" aria-label="Toggle Dark Mode"><svg viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg></button>
+  <div id="adContainer"><video id="adVideo"></video></div>
   <script>
-    const root = document.documentElement;
-    const original = {
-      bg: getComputedStyle(root).getPropertyValue('--bg'),
-      text: getComputedStyle(root).getPropertyValue('--text'),
-      cellBg: getComputedStyle(root).getPropertyValue('--cell-bg'),
-      hoverBg: getComputedStyle(root).getPropertyValue('--hover-bg'),
-      xColor: getComputedStyle(root).getPropertyValue('--x-color'),
-      oColor: getComputedStyle(root).getPropertyValue('--o-color')
-    };
-    const winCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-    let board = Array(9).fill(''), current = 'X', over = false, count = 0, authenticated = false;
-    const clickAudio = document.getElementById('clickAudio');
-    const botAudio = document.getElementById('botAudio');
-    const winAudio = document.getElementById('winAudio');
-
-    function render() {
-      const g = document.getElementById('game'); g.innerHTML = '';
-      board.forEach((v,i) => {
-        const c = document.createElement('div');
-        c.className = 'cell ' + v;
-        c.textContent = v;
-        c.onclick = () => player(i);
-        g.appendChild(c);
-      });
-    }
-
-    function player(i) {
-      if (over || board[i] || current !== 'X') return;
-      clickAudio.play(); board[i] = 'X'; render();
-      if (end('X')) return;
-      current = 'O'; setTimeout(ai, 400);
-    }
-    function ai() {
-      if (over) return;
-      let mv = best('O') ?? best('X');
-      if (mv == null) {
-        const empties = board.map((v,i)=>v===''?i:null).filter(x=>x!=null);
-        mv = empties[Math.floor(Math.random()*empties.length)];
-      }
-      botAudio.play(); board[mv] = 'O'; render();
-      if (end('O')) return;
-      current = 'X';
-    }
-    function best(p) {
-      for (let combo of winCombos) {
-        const [a,b,c] = combo;
-        const line = [board[a],board[b],board[c]];
-        if (line.filter(x=>x===p).length===2 && line.includes('')) {
-          return combo[line.indexOf('')];
-        }
-      }
-      return null;
-    }
-    function end(p) {
-      if (winCombos.some(c=>c.every(i=>board[i]===p))) {
-        winAudio.play(); highlight(p); over = true; return true;
-      }
-      if (!board.includes('')) { over = true; return true; }
-      return false;
-    }
-    function highlight(p) {
-      document.querySelectorAll('.cell').forEach((c,idx) => {
-        winCombos.forEach(cmb => {
-          if (cmb.every(i=>board[i]===p)) {
-            cmb.forEach(i=>document.querySelectorAll('.cell')[i].classList.add('win', p));
-          }
-        });
-      });
-      document.getElementById('newGameBtn').classList.add('visible');
-    }
-    function reset() {
-      board.fill(''); over=false; count++; current = count%2? 'X':'O';
-      document.getElementById('newGameBtn').classList.remove('visible'); render();
-      if (current==='O') setTimeout(ai,400);
-    }
-    function toggleDark() {
-      const d = document.body.classList.toggle('dark');
-      if (!d) {
-        root.style.setProperty('--bg', original.bg);
-        root.style.setProperty('--text', original.text);
-        root.style.setProperty('--cell-bg', original.cellBg);
-        root.style.setProperty('--hover-bg', original.hoverBg);
-        root.style.setProperty('--x-color', original.xColor);
-        root.style.setProperty('--o-color', original.oColor);
-      }
-    }
-    function toggleBrush() {
-      const rand = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
-      root.style.setProperty('--bg', rand());
-      root.style.setProperty('--x-color', rand());
-      root.style.setProperty('--o-color', rand());
-    }
-
-    // Serverless payment callback
-    function onReadyForServerApproval(paymentId) {
-      fetch('/.netlify/functions/complete-payment', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ paymentId })
-      })
-      .then(res=>res.json())
-      .then(data=>console.log('Server approved:', data))
-      .catch(err=>console.error('Error approving payment:', err));
-    }
-
-    function onReadyForServerCompletion(id, tx) {
-      console.log('Completed:', id, tx);
-    }
-
-    function processPayment() {
-      if (!authenticated) return;
-      Pi.createPayment(
-        { amount:0.01, memo:'Tic Tac Toe Game', metadata:{purpose:'Game Payment'} },
-        {
-          onReadyForServerApproval,
-          onReadyForServerCompletion,
-          onCancel: id => console.log('Cancelled:', id),
-          onError: err => console.error('Payment error', err)
-        }
-      );
-    }
-
-    window.addEventListener('DOMContentLoaded', ()=>{
-      render(); reset();
-      document.getElementById('newGameBtn').onclick = reset;
-      document.getElementById('payBtn').onclick = processPayment;
-      document.getElementById('brushIcon').onclick = toggleBrush;
-      document.getElementById('darkToggle').onclick = toggleDark;
-
-      Pi.init({version:'2.0'});
-      
-      // Handle incomplete payments (e.g. user closed modal before completion)
-      function onIncompletePaymentFound(payment) {
-        console.log('Incomplete payment found:', payment.id);
-        onReadyForServerApproval(payment.id);
-      }
-
-      Pi.authenticate(['payments'], onIncompletePaymentFound)
-        .then(()=>{
-          authenticated = true;
-          document.getElementById('payBtn').disabled = false;
-        })
-        .catch(console.error);
-      Pi.authenticate(['payments'])
-        .then(()=>{
-          authenticated = true;
-          document.getElementById('payBtn').disabled = false;
-        })
-        .catch(console.error);
-    });
+    const root=document.documentElement;
+    const original={bg:getComputedStyle(root).getPropertyValue('--bg'),text:getComputedStyle(root).getPropertyValue('--text'),cellBg:getComputedStyle(root).getPropertyValue('--cell-bg'),hoverBg:getComputedStyle(root).getPropertyValue('--hover-bg'),xColor:getComputedStyle(root).getPropertyValue('--x-color'),oColor:getComputedStyle(root).getPropertyValue('--o-color')};
+    const winCombos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let board=Array(9).fill(''),current='X',over=false,count=0,authenticated=false,matches=0;
+    const clickAudio=document.getElementById('clickAudio'),botAudio=document.getElementById('botAudio'),winAudio=document.getElementById('winAudio');
+    function render(){const g=document.getElementById('game');g.innerHTML='';board.forEach((v,i)=>{const c=document.createElement('div');c.className='cell '+v;c.textContent=v;c.onclick=()=>player(i);g.appendChild(c);});}
+    function player(i){if(over||board[i]||current!=='X')return;clickAudio.play();board[i]='X';render();if(end('X'))return;current='O';setTimeout(ai,400);}    
+    function ai(){if(over)return;let mv=best('O')||best('X');if(mv==null){const empties=board.map((v,i)=>v===''?i:null).filter(n=>n!=null);mv=empties[Math.floor(Math.random()*empties.length)];}botAudio.play();board[mv]='O';render();if(end('O'))return;current='X';}
+    function best(p){for(const c of winCombos){const[a,b,c2]=c;const line=[board[a],board[b],board[c2]];if(line.filter(x=>x===p).length===2&&line.includes(''))return c[line.indexOf('')];}return null;}
+    function end(p){if(winCombos.some(c=>c.every(i=>board[i]===p))){winAudio.play();highlight(p);over=true;return true;}if(!board.includes('')){over=true;document.getElementById('newGameBtn').classList.add('visible');return true;}return false;}
+    function highlight(p){document.querySelectorAll('.cell').forEach((c,idx)=>{winCombos.forEach(cmb=>{if(cmb.every(i=>board[i]===p))cmb.forEach(i=>document.querySelectorAll('.cell')[i].classList.add('win',p));});});document.getElementById('newGameBtn').classList.add('visible');}
+    function reset(){board.fill('');over=false;count++;current=(count%2?'X':'O');document.getElementById('newGameBtn').classList.remove('visible');render();if(current==='O')setTimeout(ai,400);}    
+    function toggleDark(){const d=document.body.classList.toggle('dark');if(!d){root.style.setProperty('--bg',original.bg);root.style.setProperty('--text',original.text);root.style.setProperty('--cell-bg',original.cellBg);root.style.setProperty('--hover-bg',original.hoverBg);root.style.setProperty('--x-color',original.xColor);root.style.setProperty('--o-color',original.oColor);}    }
+    function toggleBrush(){const r=()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');root.style.setProperty('--bg',r());root.style.setProperty('--x-color',r());root.style.setProperty('--o-color',r());}
+    // Payment callbacks
+    function onReadyForServerApproval(paymentId){fetch('/.netlify/functions/complete-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId})}).then(res=>{if(!res.ok)throw new Error('Server failed');return res.json();}).then(data=>{console.log('Server approved:',data);Pi.completePayment(paymentId);}).catch(err=>console.error('Error approving payment:',err));}
+    function onReadyForServerCompletion(id,tx){console.log('Completed:',id,tx);}
+    function processPayment(){if(!authenticated)return;Pi.createPayment({amount:0.01,memo:'Tic Tac Toe Game',metadata:{purpose:'Game Payment'}},{onReadyForServerApproval,onReadyForServerCompletion,onCancel:id=>console.log('Cancelled:',id),onError:err=>console.error('Payment error',err)});}  
+    window.addEventListener('DOMContentLoaded',()=>{render();reset();document.getElementById('newGameBtn').onclick=reset;document.getElementById('payBtn').onclick=processPayment;document.getElementById('brushIcon').onclick=toggleBrush;document.getElementById('darkToggle').onclick=toggleDark;Pi.init({version:'2.0',sandbox:true});Pi.authenticate(['payments'],onReadyForServerApproval).then(()=>{authenticated=true;document.getElementById('payBtn').disabled=false;}).catch(console.error);initAdSdk();});
   </script>
 </body>
 </html>
