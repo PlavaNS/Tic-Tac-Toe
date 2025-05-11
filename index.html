@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <title>Tic Tac Toe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Pi Browser SDK -->
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <!-- IMA HTML5 SDK za rewarded video oglase -->
+  <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
   <style>
     :root {
       --bg: #f5f5f5;
@@ -85,11 +88,23 @@
       border-radius: 10px;
       cursor: pointer;
       margin: 10px;
+    }
+    #newGameBtn {
+      background: white;
+      color: black;
+      display: none;
+    }
+    #newGameBtn.visible {
+      display: block;
+    }
+    body.dark #newGameBtn {
+      background: white;
+      color: black;
+    }
+    #payBtn {
+      background: var(--pay-bg);
       color: var(--btn-text);
     }
-    #newGameBtn { background: var(--newgame-bg); display: none; }
-    #newGameBtn.visible { display: block; }
-    #payBtn { background: var(--pay-bg); }
     #brushIcon, #darkToggle svg {
       filter: invert(0) grayscale(100%);
       transition: filter 0.3s ease;
@@ -120,17 +135,14 @@
   <audio id="clickAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
   <audio id="botAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
   <audio id="winAudio" src="correct.mp3" preload="auto"></audio>
-
   <button id="newGameBtn">New Game</button>
   <button id="payBtn" disabled>Pay with Pi</button>
   <img id="brushIcon" src="theme.png" alt="Brush Icon">
   <button id="darkToggle" aria-label="Toggle Dark Mode">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
   </button>
-
   <script>
     const root = document.documentElement;
-    // Save original CSS vars for full revert
     const originalVars = {
       '--bg': getComputedStyle(root).getPropertyValue('--bg'),
       '--text': getComputedStyle(root).getPropertyValue('--text'),
@@ -139,27 +151,27 @@
       '--x-color': getComputedStyle(root).getPropertyValue('--x-color'),
       '--o-color': getComputedStyle(root).getPropertyValue('--o-color')
     };
-
     const winCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
     let board = Array(9).fill(''); let currentPlayer = 'X'; let gameOver = false; let gameCount = 0;
-    const clickAudio = document.getElementById('clickAudio'); const botAudio = document.getElementById('botAudio'); const winAudio = document.getElementById('winAudio');
-
+    const clickAudio = document.getElementById('clickAudio');
+    const botAudio = document.getElementById('botAudio');
+    const winAudio = document.getElementById('winAudio');
     function renderBoard() {
       const gameDiv = document.getElementById('game'); gameDiv.innerHTML = '';
       board.forEach((val,i)=>{ const cell=document.createElement('div'); cell.className='cell '+val; cell.textContent=val; cell.addEventListener('click',()=>handlePlayerMove(i)); gameDiv.appendChild(cell); });
     }
     function handlePlayerMove(i){ if(gameOver||board[i]||currentPlayer!=='X') return; clickAudio.play(); board[i]='X'; renderBoard(); if(checkWin('X')||checkDraw()) return endRound(); currentPlayer='O'; setTimeout(botMove,400);}    
     function botMove(){ if(gameOver) return; let move=getBestMove('O')||getBestMove('X'); if(move==null){ const empties=board.map((v,i)=>v===''?i:null).filter(n=>n!=null); move=empties[Math.floor(Math.random()*empties.length)]; } botAudio.play(); board[move]='O'; renderBoard(); if(checkWin('O')||checkDraw()) return endRound(); currentPlayer='X'; }
-    function getBestMove(player){ for(const c of winCombos){ const [a,b,c2]=c; const line=[board[a],board[b],board[c2]]; if(line.filter(x=>x===player).length===2&&line.includes('')) return c[line.indexOf('')]; } return null; }
+    function getBestMove(p){ for(const c of winCombos){ const [a,b,c2]=c; const line=[board[a],board[b],board[c2]]; if(line.filter(x=>x===p).length===2&&line.includes('')) return c[line.indexOf('')]; } return null;}    
     function checkWin(p){ if(winCombos.some(c=>c.every(i=>board[i]===p))){ winAudio.play(); highlightWin(p); return true;} return false; }
     function checkDraw(){ return board.every(v=>v!==''); }
     function highlightWin(p){ const cells=document.querySelectorAll('.cell'); winCombos.forEach(c=>{ if(c.every(i=>board[i]===p)) c.forEach(i=>cells[i].classList.add('win',p)); }); }
     function endRound(){ gameOver=true; document.getElementById('newGameBtn').classList.add('visible'); }
     function startNewGame(){ board=Array(9).fill(''); gameOver=false; gameCount++; currentPlayer=gameCount%2?'X':'O'; document.getElementById('newGameBtn').classList.remove('visible'); renderBoard(); if(currentPlayer==='O') setTimeout(botMove,400);}    
-    function toggleDarkMode(){ const isDark=document.body.classList.toggle('dark'); if(!isDark){ for(const [prop,val] of Object.entries(originalVars)) root.style.setProperty(prop,val);} }
+    function toggleDarkMode(){ const isDark=document.body.classList.toggle('dark'); if(!isDark){ for(const[prop,val] of Object.entries(originalVars)) root.style.setProperty(prop,val);} }
     function toggleBrushTheme(){ const rand=()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'); root.style.setProperty('--bg',rand()); root.style.setProperty('--cell-bg','#fff'); root.style.setProperty('--hover-bg','#f0f0f0'); root.style.setProperty('--x-color',rand()); root.style.setProperty('--o-color',rand()); }
-    function onIncompletePaymentFound(payment){ Pi.completePayment(payment.id).catch(console.error); }
-    function processPiPayment(){ if(!window.piUserAuthenticated) return; Pi.createPayment({amount:0.01,memo:'Tic Tac Toe Game',metadata:{purpose:'Game Payment'}},{onReadyForServerApproval:id=>Pi.completePayment(id).catch(console.error),onReadyForServerCompletion:(id,tx)=>console.log('Done',id,tx),onCancel:id=>console.log('Cancel',id),onError:(e,p)=>console.error('Err',e,p)}); }
+    function onIncompletePaymentFound(payment){ Pi.completePayment(payment.id).catch(console.error);}    
+    function processPiPayment(){ if(!window.piUserAuthenticated) return; Pi.createPayment({amount:0.01,memo:'Tic Tac Toe Game',metadata:{purpose:'Game Payment'}},{onReadyForServerApproval:id=>Pi.completePayment(id).catch(console.error),onReadyForServerCompletion:(id,tx)=>console.log('Done',id,tx),onCancel:id=>console.log('Cancelled',id),onError:(e,p)=>console.error('Err',e,p)}); }
     window.addEventListener('DOMContentLoaded',()=>{ renderBoard(); startNewGame(); document.getElementById('newGameBtn').addEventListener('click',startNewGame); document.getElementById('brushIcon').addEventListener('click',toggleBrushTheme); document.getElementById('darkToggle').addEventListener('click',toggleDarkMode); document.getElementById('payBtn').addEventListener('click',processPiPayment); Pi.init({version:'2.0',sandbox:true}); Pi.authenticate(['payments'],onIncompletePaymentFound).then(()=>window.piUserAuthenticated=true).catch(console.error); });
   </script>
 </body>
