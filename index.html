@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,3 +125,131 @@
   </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Pi Browser SDK -->
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <!-- IMA HTML5 SDK za rewarded video oglase -->
+  <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --text: #333333;
+      --cell-bg: white;
+      --hover-bg: #f0f0f0;
+      --x-color: #2c3e50;
+      --o-color: #e74c3c;
+      --newgame-bg: #28a745;
+      --pay-bg: #3498db;
+      --btn-text: #fff;
+    }
+    body.dark {
+      --bg: #111;
+      --text: #f5f5f5;
+      --cell-bg: #1e1e1e;
+      --hover-bg: #333;
+      --x-color: #e1e5eb;
+      --o-color: #e74c3c;
+      --newgame-bg: #28a745;
+      --pay-bg: #e1e5eb;
+      --btn-text: #111;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    #game { display: grid; grid-template: repeat(3, 100px) / repeat(3, 100px); gap: 12px; margin: 40px 0; }
+    .cell { background: var(--cell-bg); border: 2px solid #ccc; border-radius: 12px; font-size: 4rem; font-weight: bold;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; color: var(--x-color);
+    }
+    .cell:hover { background: var(--hover-bg); }
+    .X { color: var(--x-color); }
+    .O { color: var(--o-color); }
+    .win.X, .win.O { animation: strongShake 0.6s ease-in-out; box-shadow: 0 0 10px var(--newgame-bg); }
+    @keyframes strongShake { 0%,100%{transform:translate(0)}10%{transform:translate(-8px,0)}20%{transform:translate(8px,0)}30%{transform:translate(-6px,0)}40%{transform:translate(6px,0)}50%{transform:translate(-4px,0)}60%{transform:translate(4px,0)}70%{transform:translate(-2px,0)}80%{transform:translate(2px,0)} }
+    button { font-size:1.2rem; font-weight:bold; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; margin:10px; }
+    #newGameBtn { background:white; color:black; display:none; }
+    #newGameBtn.visible { display:block; }
+    body.dark #newGameBtn { background:white; color:black; }
+    #payBtn { background:var(--pay-bg); color:var(--btn-text); }
+    #brushIcon, #darkToggle svg { filter:invert(0) grayscale(100%); transition:filter 0.3s ease; }
+    body.dark #brushIcon, body.dark #darkToggle svg { filter:invert(1) grayscale(100%); }
+    #brushIcon, #darkToggle { position:fixed; bottom:20px; width:42px; height:42px; cursor:pointer; z-index:1000; }
+    #brushIcon { left:20px; }
+    #darkToggle { right:20px; background:none; border:none; padding:0; }
+    #darkToggle svg { width:100%; height:100%; display:block; }
+    /* Rewarded ad container */
+    #adContainer { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:2000; }
+    #adVideo { width:100%; height:100%; }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <audio id="clickAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
+  <audio id="botAudio" src="mixkit-modern-technology-select-3124.wav" preload="auto"></audio>
+  <audio id="winAudio" src="correct.mp3" preload="auto"></audio>
+  <button id="newGameBtn">New Game</button>
+  <button id="payBtn" disabled>Pay with Pi</button>
+  <img id="brushIcon" src="theme.png" alt="Brush Icon">
+  <button id="darkToggle" aria-label="Toggle Dark Mode">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
+  </button>
+  <div id="adContainer"><video id="adVideo"></video></div>
+  <script>
+    const root=document.documentElement;
+    const originalVars={
+      '--bg':getComputedStyle(root).getPropertyValue('--bg'),
+      '--text':getComputedStyle(root).getPropertyValue('--text'),
+      '--cell-bg':getComputedStyle(root).getPropertyValue('--cell-bg'),
+      '--hover-bg':getComputedStyle(root).getPropertyValue('--hover-bg'),
+      '--x-color':getComputedStyle(root).getPropertyValue('--x-color'),
+      '--o-color':getComputedStyle(root).getPropertyValue('--o-color')
+    };
+    const winCombos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let board=Array(9).fill(''), currentPlayer='X', gameOver=false, gameCount=0, piUserAuthenticated=false, matchesPlayed=0;
+    const clickAudio=document.getElementById('clickAudio'), botAudio=document.getElementById('botAudio'), winAudio=document.getElementById('winAudio');
+    function renderBoard(){ const gameDiv=document.getElementById('game'); gameDiv.innerHTML=''; board.forEach((v,i)=>{const cell=document.createElement('div');cell.className='cell '+v;cell.textContent=v;cell.addEventListener('click',()=>handlePlayerMove(i));gameDiv.appendChild(cell);});}
+    function handlePlayerMove(i){ if(gameOver||board[i]||currentPlayer!=='X')return; clickAudio.play();board[i]='X';renderBoard(); if(checkWin('X')||checkDraw())return endRound(); currentPlayer='O';setTimeout(botMove,400);}
+    function botMove(){ if(gameOver)return; let mv=getBestMove('O')||getBestMove('X'); if(mv==null){const e=board.map((v,i)=>v===''?i:null).filter(n=>n!=null);mv=e[Math.floor(Math.random()*e.length)];}botAudio.play();board[mv]='O';renderBoard(); if(checkWin('O')||checkDraw())return endRound(); currentPlayer='X';}
+    function getBestMove(p){for(const c of winCombos){const[a,b,c2]=c;const line=[board[a],board[b],board[c2]];if(line.filter(x=>x===p).length===2&&line.includes(''))return c[line.indexOf('')];}return null;}
+    function checkWin(p){if(winCombos.some(c=>c.every(i=>board[i]===p))){winAudio.play();highlightWin(p);return true;}return false;}
+    function checkDraw(){return board.every(v=>v!=='');}
+    function highlightWin(p){const cells=document.querySelectorAll('.cell');winCombos.forEach(c=>{if(c.every(i=>board[i]===p))c.forEach(i=>cells[i].classList.add('win',p));});}
+    function endRound(){gameOver=true;matchesPlayed++;if(matchesPlayed%3===0){showRewardedVideoAd();}else{document.getElementById('newGameBtn').classList.add('visible');}}
+    function startNewGame(){board=Array(9).fill('');gameOver=false;gameCount++;currentPlayer=gameCount%2?'X':'O';document.getElementById('newGameBtn').classList.remove('visible');renderBoard();if(currentPlayer==='O')setTimeout(botMove,400);}
+    function toggleDarkMode(){const d=document.body.classList.toggle('dark');if(!d)for (const [p, v] of Object.entries(originalVars))root.style.setProperty(p,v);}
+    function toggleBrushTheme(){const r=()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');root.style.setProperty('--bg',r());root.style.setProperty('--cell-bg','#fff');root.style.setProperty('--hover-bg','#f0f0f0');root.style.setProperty('--x-color',r());root.style.setProperty('--o-color',r());}
+    // IMA SDK
+    let adDisplayContainer,adsLoader,adsManager;
+    function initAdSdk(){adDisplayContainer=new google.ima.AdDisplayContainer(document.getElementById('adContainer'),document.getElementById('adVideo'));adsLoader=new google.ima.AdsLoader(adDisplayContainer);adsLoader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,e=>onAdsManagerLoaded(e),false);adsLoader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR,onAdError,false);}
+    function showRewardedVideoAd(){document.getElementById('adContainer').style.display='block';adDisplayContainer.initialize();adsLoader.requestAds(new google.ima.AdsRequest({adTagUrl:'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/video_ad_samples&description_url=https%3A%2F%2Fdevelopers.google.com%2Finteractive-media-ads&env=vp&output=vast&unviewed_position_start=1&correlator='}));}
+    function onAdsManagerLoaded(e){adsManager=e.getAdsManager(document.getElementById('adVideo'));adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED,()=>{document.getElementById('adContainer').style.display='none';document.getElementById('newGameBtn').classList.add('visible');});adsManager.init(window.innerWidth,window.innerHeight,google.ima.ViewMode.NORMAL);adsManager.start();}
+    function onAdError(err){console.error(err);document.getElementById('adContainer').style.display='none';document.getElementById('newGameBtn').classList.add('visible');}
+
+    // Pi SDK setup
+    function onReadyForServerApproval(paymentId){
+      fetch('http://localhost:3000/api/complete-payment',{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId})
+      })
+      .then(res=>res.json())
+      .then(data=>console.log('Server approved:',data))
+      .catch(err=>console.error('Error approving payment:',err));
+    }
+    function processPiPayment(){ if(!piUserAuthenticated) return; Pi.createPayment({amount:0.01,memo:'Tic Tac Toe Game',metadata:{purpose:'Game Payment'}},{onReadyForServerApproval:onReadyForServerApproval,onReadyForServerCompletion:(id,tx)=>console.log('Completed:',id,tx),onCancel:id=>console.log('Cancelled:',id),onError:(e,p)=>console.error('Payment error',e,p)}); }
+    window.addEventListener('DOMContentLoaded',()=>{renderBoard();startNewGame();document.getElementById('newGameBtn').addEventListener('click',startNewGame);document.getElementById('brushIcon').addEventListener('click',toggleBrushTheme);document.getElementById('darkToggle').addEventListener('click',toggleDarkMode);document.getElementById('payBtn').addEventListener('click',processPiPayment);Pi.init({version:'2.0',sandbox:true});Pi.authenticate(['payments'],onReadyForServerApproval).then(()=>piUserAuthenticated=true).catch(console.error);initAdSdk();});
+  </script>
+</body>
+</html>
+>>>>>>> d1b903e09d64ee37a2768a9f7622634b751df225
