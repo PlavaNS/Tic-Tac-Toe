@@ -1,0 +1,3 @@
+[build]
+  publish   = "."                  # tvoj index.html je u root-u
+  functions = "netlify/functions"

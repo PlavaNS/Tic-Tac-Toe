@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Memory Igra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f0f0f0;
+      height: 100vh;
+      margin: 0;
+    }
+    .game {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+    }
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #3498db;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card.matched {
+      background: #2ecc71;
+      cursor: default;
+    }
+    .card.hidden {
+      background: #3498db;
+      color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="game" id="game"></div>
+
+  <script>
+    const emojis = ['🐱', '🐶', '🦊', '🐸', '🐵', '🐼', '🐷', '🦁'];
+    let cards = [...emojis, ...emojis];
+    cards = cards.sort(() => Math.random() - 0.5);
+
+    const game = document.getElementById('game');
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+
+    cards.forEach((emoji, index) => {
+      const card = document.createElement('div');
+      card.classList.add('card', 'hidden');
+      card.dataset.emoji = emoji;
+      card.dataset.index = index;
+      card.innerText = emoji;
+
+      card.addEventListener('click', () => {
+        if (lockBoard || card.classList.contains('matched') || card === firstCard) return;
+
+        card.classList.remove('hidden');
+
+        if (!firstCard) {
+          firstCard = card;
+        } else {
+          secondCard = card;
+          lockBoard = true;
+
+          if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            reset();
+          } else {
+            setTimeout(() => {
+              firstCard.classList.add('hidden');
+              secondCard.classList.add('hidden');
+              reset();
+            }, 1000);
+          }
+        }
+      });
+
+      game.appendChild(card);
+    });
+
+    function reset() {
+      [firstCard, secondCard] = [null, null];
+      lockBoard = false;
+    }
+  </script>
+</body>
+</html>
