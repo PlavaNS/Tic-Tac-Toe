@@ -1,29 +1,32 @@
-import axios from "axios";
+// netlify/functions/complete-payment.js
+const axios = require('axios');
 
-export async function handler(event) {
-  const { paymentId } = JSON.parse(event.body || "{}");
-  const PI_SERVER_KEY = process.env.PI_SERVER_KEY;
-  if (!paymentId || !PI_SERVER_KEY) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "Missing paymentId or server key" })
-    };
-  }
+exports.handler = async function(event, context) {
   try {
-    const apiRes = await axios.post(
-      "https://api.minepi.com/v2/payments/complete",
+    const { paymentId } = JSON.parse(event.body);
+
+    // Pošalji zahtev na Pi Network server
+    const response = await axios.post(
+      'https://core.minepi.com/v2/payments/approve',
       { paymentId },
-      { headers: { Authorization: `Bearer ${PI_SERVER_KEY}` } }
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-pi-server-key': process.env.PI_SERVER_KEY
+        }
+      }
     );
+
+    // Vrati klijentu rezultat
     return {
       statusCode: 200,
-      body: JSON.stringify(apiRes.data)
+      body: JSON.stringify(response.data)
     };
-  } catch (e) {
-    console.error("Error completing payment:", e.response?.data || e.message);
+  } catch (error) {
+    console.error('Payment approval error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to complete payment" })
+      body: JSON.stringify({ error: error.message })
     };
   }
-}
+};
