@@ -2,12 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Tic Tac Toe</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+  <title>Tic Tac Toe</title>
+
+  <!-- PWA manifest i ikonice -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <meta name="theme-color" content="#2c3e50" />
+
   <!-- Pi Browser SDK -->
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <!-- (Optional) IMA SDK for future video ads -->
   <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+
   <style>
     :root {
       --bg: #f5f5f5;
@@ -62,14 +69,10 @@
       padding:10px 20px; border:none; border-radius:10px;
       cursor:pointer; margin:10px;
     }
-    #newGameBtn {
-      background:#fff; color:#000; display:none;
-    }
+    #newGameBtn { background:#fff; color:#000; display:none; }
     #newGameBtn.visible { display:block; }
     body.dark #newGameBtn { background:#000; color:#fff; }
-    #payBtn {
-      background:#3498db; color:#fff;
-    }
+    #payBtn { background:#3498db; color:#fff; }
     #brushIcon,#darkToggle svg {
       width:42px;height:42px;cursor:pointer;
       filter:invert(0) grayscale(100%);transition:.3s;
@@ -101,18 +104,13 @@
   </button>
 
   <script>
-    // --- Game setup ---
+    // --- Game logic (minimax bot, rendering, reset) ---
     const winCombos = [
       [0,1,2],[3,4,5],[6,7,8],
       [0,3,6],[1,4,7],[2,5,8],
       [0,4,8],[2,4,6]
     ];
-    let board = Array(9).fill(''),
-        current = 'X',
-        over = false,
-        count = 0,
-        authenticated = false;
-
+    let board = Array(9).fill(''), current = 'X', over = false, count = 0, authenticated = false;
     const clickAudio = document.getElementById('clickAudio'),
           botAudio   = document.getElementById('botAudio'),
           winAudio   = document.getElementById('winAudio');
@@ -128,24 +126,17 @@
         g.appendChild(cell);
       });
     }
-
     function player(i) {
       if (over || board[i] || current !== 'X') return;
       clickAudio.play();
-      board[i] = 'X';
-      render();
+      board[i] = 'X'; render();
       if (end('X')) return;
-      current = 'O';
-      setTimeout(ai, 300);
+      current = 'O'; setTimeout(ai, 300);
     }
-
-    // Smart minimax bot
-    function evaluate(bd){
-      for(const [a,b,c] of winCombos){
-        if (bd[a] && bd[a] === bd[b] && bd[b] === bd[c]) {
+    function evaluate(bd) {
+      for (const [a,b,c] of winCombos)
+        if (bd[a] && bd[a] === bd[b] && bd[b] === bd[c])
           return bd[a] === 'O' ? +10 : -10;
-        }
-      }
       return 0;
     }
     function minimax(bd, isMax) {
@@ -182,56 +173,39 @@
           board[i] = 'O';
           const val = minimax(board, false);
           board[i] = '';
-          if (val > bestVal) {
-            bestVal = val; move = i;
-          }
+          if (val > bestVal) { bestVal = val; move = i; }
         }
       });
       if (move != null) {
         botAudio.play();
-        board[move] = 'O';
-        render();
+        board[move] = 'O'; render();
         if (!end('O')) current = 'X';
       }
     }
-
     function end(p) {
-      // Win?
       if (winCombos.some(c => c.every(i=>board[i]===p))) {
-        winAudio.play();
-        highlight(p);
-        over = true;
-        return true;
+        winAudio.play(); highlight(p); over = true; return true;
       }
-      // Draw?
-      if (!board.includes('')) {
-        over = true;
-        highlight(); // show new game
-        return true;
-      }
+      if (!board.includes('')) { highlight(); over = true; return true; }
       return false;
     }
     function highlight(winner) {
-      document.querySelectorAll('.cell').forEach((cell,i,all) => {
-        if (winner && winCombos.some(c=>c.every(idx=>board[idx]===winner) && c.includes(i))) {
+      document.querySelectorAll('.cell').forEach((cell,i) => {
+        if (winner && winCombos.some(c=>c.every(idx=>board[idx]===winner) && c.includes(i)))
           cell.classList.add('win', winner);
-        }
       });
       document.getElementById('newGameBtn').classList.add('visible');
     }
-    function reset(){
-      board.fill(''); over=false;
-      count++;
+    function reset() {
+      board.fill(''); over=false; count++;
       current = (count % 2 ? 'X' : 'O');
       document.getElementById('newGameBtn').classList.remove('visible');
       render();
       if (current === 'O') setTimeout(ai,300);
     }
 
-    // Themes
-    function toggleDark(){
-      document.body.classList.toggle('dark');
-    }
+    // --- Theme toggles ---
+    function toggleDark(){ document.body.classList.toggle('dark'); }
     function toggleBrush(){
       const r = ()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
       document.documentElement.style.setProperty('--bg', r());
@@ -247,16 +221,8 @@
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ paymentId })
         });
-        if (!res.ok) {
-          console.error('Server rejected payment', paymentId);
-          return false;
-        }
-        console.log('Server approved paymentId', paymentId);
-        return true;
-      } catch(e){
-        console.error('Approval error', e);
-        return false;
-      }
+        return res.ok;
+      } catch(e){ console.error(e); return false; }
     }
     function onReadyForServerCompletion(paymentId, tx) {
       console.log('On-chain completed:', paymentId, tx);
@@ -269,15 +235,14 @@
           onReadyForServerApproval,
           onReadyForServerCompletion,
           onCancel: id=>console.log('Canceled:',id),
-          onError: err=>console.error('Payment error',err)
+          onError: err=>console.error('Payment error', err)
         }
       );
     }
 
-    // Init
+    // --- Init everything ---
     window.addEventListener('DOMContentLoaded', ()=>{
-      render();
-      reset();
+      render(); reset();
       document.getElementById('newGameBtn').onclick = reset;
       document.getElementById('payBtn').onclick = processPayment;
       document.getElementById('brushIcon').onclick = toggleBrush;
