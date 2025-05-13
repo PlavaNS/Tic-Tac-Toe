@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Updated: Removed Pay button; New Game button hidden until game end; improved dark mode toggle to restore default theme -->
+<!-- Updated: Removed Pay button; New Game button hidden until game end; improved dark mode toggle; enlarged dark-mode icon; bright green win highlight -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -24,6 +24,7 @@
       --hover-bg: #f0f0f0;
       --x-color: #2c3e50;
       --o-color: #e74c3c;
+      --win-color: #00FF00; /* bright green */
     }
     body.dark {
       --bg: #111;
@@ -68,9 +69,10 @@
     }
     .X { color: var(--x-color); }
     .O { color: var(--o-color); }
+    /* Bright green solid highlight around winning cells */
     .win.X, .win.O {
       animation: shake .6s ease-in-out;
-      box-shadow: 0 0 10px var(--text);
+      box-shadow: 0 0 0 4px var(--win-color);
     }
     @keyframes shake {
       0%, 100% { transform: translate(0); }
@@ -79,7 +81,16 @@
     }
 
     /* New Game button hidden until visible class */
-    #newGameBtn { display: none; margin: 10px; padding: 10px 20px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; }
+    #newGameBtn {
+      display: none;
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
     #newGameBtn.visible { display: block; }
 
     /* Control icons container */
@@ -93,7 +104,7 @@
       gap: 10px;
       z-index: 1000;
     }
-    #controls img, #controls button {
+    #controls img {
       width: 42px;
       height: 42px;
       padding: 0;
@@ -103,7 +114,22 @@
       cursor: pointer;
       transition: .3s;
     }
-    body.dark #controls img, body.dark #controls button {
+    #controls button {
+      width: 50px;  /* enlarged moon icon */
+      height: 50px;
+      padding: 0;
+      background: none;
+      border: none;
+      filter: invert(0) grayscale(100%);
+      cursor: pointer;
+      transition: .3s;
+    }
+    #controls button svg {
+      width: 100%;
+      height: 100%;
+    }
+    body.dark #controls img,
+    body.dark #controls button {
       filter: invert(1) grayscale(100%);
     }
   </style>
@@ -174,7 +200,6 @@
     // --- Theme toggles with reset on light ---
     let defaultVars;
     window.addEventListener('DOMContentLoaded',()=>{
-      // capture default CSS variables
       defaultVars = {
         bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
         xColor: getComputedStyle(document.documentElement).getPropertyValue('--x-color').trim(),
@@ -191,7 +216,6 @@
         body.classList.add('dark');
       } else {
         body.classList.remove('dark');
-        // restore defaults
         document.documentElement.style.setProperty('--bg', defaultVars.bg);
         document.documentElement.style.setProperty('--x-color', defaultVars.xColor);
         document.documentElement.style.setProperty('--o-color', defaultVars.oColor);
