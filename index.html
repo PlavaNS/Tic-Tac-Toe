@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Updated: Update index.html with full PWA + Pi payment integration -->
+<!-- Updated: Removed Pay button; New Game button hidden until game end; improved dark mode toggle to restore default theme -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -66,14 +66,9 @@
     .cell:hover {
       background: var(--hover-bg);
     }
-    .X {
-      color: var(--x-color);
-    }
-    .O {
-      color: var(--o-color);
-    }
-    .win.X,
-    .win.O {
+    .X { color: var(--x-color); }
+    .O { color: var(--o-color); }
+    .win.X, .win.O {
       animation: shake .6s ease-in-out;
       box-shadow: 0 0 10px var(--text);
     }
@@ -82,53 +77,34 @@
       10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 0); }
       20%, 40%, 60%, 80% { transform: translate(5px, 0); }
     }
-    button {
-      font-size: 1.2rem;
-      font-weight: bold;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 10px;
-    }
-    #newGameBtn {
-      background: #fff;
-      color: #000;
-      display: none;
-    }
-    #newGameBtn.visible {
-      display: block;
-    }
-    body.dark #newGameBtn {
-      background: #000;
-      color: #fff;
-    }
-    #payBtn {
-      background: #3498db;
-      color: #fff;
-    }
-    #brushIcon, #darkToggle svg {
-      width: 42px;
-      height: 42px;
-      cursor: pointer;
-      filter: invert(0) grayscale(100%);
-      transition: .3s;
-    }
-    body.dark #brushIcon, body.dark #darkToggle svg {
-      filter: invert(1) grayscale(100%);
-    }
-    #brushIcon, #darkToggle {
+
+    /* New Game button hidden until visible class */
+    #newGameBtn { display: none; margin: 10px; padding: 10px 20px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; }
+    #newGameBtn.visible { display: block; }
+
+    /* Control icons container */
+    #controls {
       position: fixed;
       bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
       z-index: 1000;
     }
-    #brushIcon {
-      left: 20px;
-    }
-    #darkToggle {
-      right: 20px;
+    #controls img, #controls button {
+      width: 42px;
+      height: 42px;
+      padding: 0;
       background: none;
       border: none;
+      filter: invert(0) grayscale(100%);
+      cursor: pointer;
+      transition: .3s;
+    }
+    body.dark #controls img, body.dark #controls button {
+      filter: invert(1) grayscale(100%);
     }
   </style>
 </head>
@@ -140,22 +116,19 @@
   <audio id="winAudio" src="correct.mp3" preload="auto"></audio>
 
   <button id="newGameBtn">New Game</button>
-  <button id="payBtn" disabled>Pay with Pi</button>
-  <img id="brushIcon" src="theme.png" alt="Brush Icon" />
-  <button id="darkToggle" aria-label="Toggle Dark Mode">
-    <svg viewBox="0 0 24 24">
-      <path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z" />
-    </svg>
-  </button>
+
+  <!-- Control icons -->
+  <div id="controls">
+    <img id="brushIcon" src="theme.png" alt="Brush Icon" />
+    <button id="darkToggle" aria-label="Toggle Dark Mode">
+      <svg viewBox="0 0 24 24"><path d="M21.64 13.06A9 9 0 0 1 11 2a9 9 0 1 0 10.64 11.06z"/></svg>
+    </button>
+  </div>
 
   <script>
     // --- Game setup & logic ---
-    const winCombos = [
-      [0,1,2],[3,4,5],[6,7,8],
-      [0,3,6],[1,4,7],[2,5,8],
-      [0,4,8],[2,4,6]
-    ];
-    let board = Array(9).fill(''), current = 'X', over = false, count = 0, authenticated = false;
+    const winCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let board = Array(9).fill(''), current = 'X', over = false, count = 0;
     const clickAudio = document.getElementById('clickAudio'), botAudio = document.getElementById('botAudio'), winAudio = document.getElementById('winAudio');
 
     function render() {
@@ -172,82 +145,64 @@
       clickAudio.play(); board[i] = 'X'; render(); if (end('X')) return;
       current = 'O'; setTimeout(ai, 300);
     }
-    function evaluate(bd) {
-      for (const [a,b,c] of winCombos) if (bd[a] && bd[a] === bd[b] && bd[b] === bd[c]) return bd[a] === 'O' ? 10 : -10;
-      return 0;
-    }
+    function evaluate(bd) { for (const [a,b,c] of winCombos) if (bd[a] && bd[a]===bd[b] && bd[b]===bd[c]) return bd[a]==='O'?10:-10; return 0; }
     function minimax(bd, isMax) {
-      const score = evaluate(bd); if (score === 10 || score === -10) return score;
-      if (!bd.includes('')) return 0;
-      if (isMax) {
-        let best = -Infinity; bd.forEach((v,i) => {
-          if (!v) { bd[i] = 'O'; best = Math.max(best, minimax(bd, false)); bd[i] = ''; }
-        }); return best;
-      } else {
-        let best = Infinity; bd.forEach((v,i) => {
-          if (!v) { bd[i] = 'X'; best = Math.min(best, minimax(bd, true)); bd[i] = ''; }
-        }); return best;
-      }
+      const score = evaluate(bd); if (score===10||score===-10) return score; if (!bd.includes('')) return 0;
+      if (isMax) { let best=-Infinity; bd.forEach((v,i)=>{ if(!v){bd[i]='O'; best=Math.max(best,minimax(bd,false)); bd[i]='';}}); return best; }
+      else { let best=Infinity; bd.forEach((v,i)=>{ if(!v){bd[i]='X'; best=Math.min(best,minimax(bd,true)); bd[i]='';}}); return best; }
     }
     function ai() {
       if (over) return;
-      let bestVal = -Infinity, move = null;
-      board.forEach((v,i) => {
-        if (!v) {
-          board[i] = 'O'; const val = minimax(board, false); board[i] = '';
-          if (val > bestVal) { bestVal = val; move = i; }
-        }
-      });
-      if (move !== null) { botAudio.play(); board[move] = 'O'; render(); if (!end('O')) current = 'X'; }
+      let bestVal=-Infinity, move=null;
+      board.forEach((v,i)=>{ if(!v){ board[i]='O'; const val=minimax(board,false); board[i]=''; if(val>bestVal){bestVal=val; move=i;} }});
+      if(move!==null){ botAudio.play(); board[move]='O'; render(); if(!end('O')) current='X'; }
     }
     function end(p) {
-      if (winCombos.some(c => c.every(i => board[i] === p))) { winAudio.play(); highlight(p); over = true; return true; }
-      if (!board.includes('')) { highlight(); over = true; return true; } return false;
+      if(winCombos.some(c=>c.every(i=>board[i]===p))){ winAudio.play(); highlight(p); over=true; return true; }
+      if(!board.includes('')){ highlight(); over=true; return true; }
+      return false;
     }
-    function highlight(winner) {
-      document.querySelectorAll('.cell').forEach((cell,i) => {
-        if (winner && winCombos.some(c => c.every(idx => board[idx] === winner) && c.includes(i))) cell.classList.add('win', winner);
-      });
+    function highlight(w) {
+      document.querySelectorAll('.cell').forEach((c,i)=>{ if(w && winCombos.some(combo=>combo.every(idx=>board[idx]===w)&&combo.includes(i))) c.classList.add('win', w); });
       document.getElementById('newGameBtn').classList.add('visible');
     }
-    function reset() { board.fill(''); over = false; count++; current = (count % 2 ? 'X' : 'O'); document.getElementById('newGameBtn').classList.remove('visible'); render(); if (current === 'O') setTimeout(ai,300); }
+    function reset() {
+      board.fill(''); over=false; count++; current=(count%2?'X':'O');
+      document.getElementById('newGameBtn').classList.remove('visible'); render(); if(current==='O') setTimeout(ai,300);
+    }
 
-    // --- Theme toggles ---
-    function toggleDark() { document.body.classList.toggle('dark'); }
+    // --- Theme toggles with reset on light ---
+    let defaultVars;
+    window.addEventListener('DOMContentLoaded',()=>{
+      // capture default CSS variables
+      defaultVars = {
+        bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+        xColor: getComputedStyle(document.documentElement).getPropertyValue('--x-color').trim(),
+        oColor: getComputedStyle(document.documentElement).getPropertyValue('--o-color').trim()
+      };
+      render(); reset();
+      document.getElementById('newGameBtn').onclick=reset;
+      document.getElementById('brushIcon').onclick=toggleBrush;
+      document.getElementById('darkToggle').onclick=toggleDark;
+    });
+    function toggleDark() {
+      const body=document.body;
+      if(!body.classList.contains('dark')) {
+        body.classList.add('dark');
+      } else {
+        body.classList.remove('dark');
+        // restore defaults
+        document.documentElement.style.setProperty('--bg', defaultVars.bg);
+        document.documentElement.style.setProperty('--x-color', defaultVars.xColor);
+        document.documentElement.style.setProperty('--o-color', defaultVars.oColor);
+      }
+    }
     function toggleBrush() {
-      const r = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
+      const r=()=> '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
       document.documentElement.style.setProperty('--bg', r());
       document.documentElement.style.setProperty('--x-color', r());
       document.documentElement.style.setProperty('--o-color', r());
     }
-
-    // --- Pi-payment setup on Netlify ---
-    const COMPLETE_PAYMENT_URL = 'https://fabulous-zabaione-e15804.netlify.app/.netlify/functions/complete-payment';
-    async function onReadyForServerApproval(paymentId) {
-      try {
-        const res = await fetch(COMPLETE_PAYMENT_URL, {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ paymentId })
-        });
-        return res.ok;
-      } catch (e) { console.error('Approval error', e); return false; }
-    }
-    function onReadyForServerCompletion(paymentId, tx) { console.log('On-chain completed:', paymentId, tx); }
-    function processPayment() { if (!authenticated) return; Pi.createPayment({ amount:0.01, memo:'Tic Tac Toe Game', metadata:{purpose:'Game Payment'} }, { onReadyForServerApproval, onReadyForServerCompletion, onCancel:id=>console.log('Canceled:',id), onError:err=>console.error('Payment error',err) }); }
-
-    // --- Init & authenticate ---
-    window.addEventListener('DOMContentLoaded', () => {
-      render(); reset();
-      document.getElementById('newGameBtn').onclick = reset;
-      document.getElementById('payBtn').onclick = processPayment;
-      document.getElementById('brushIcon').onclick = toggleBrush;
-      document.getElementById('darkToggle').onclick = toggleDark;
-
-      Pi.init({ version: '2.0' });
-      Pi.authenticate(['payments'])
-        .then(() => { authenticated = true; document.getElementById('payBtn').disabled = false; })
-        .catch(console.error);
-    });
   </script>
 </body>
 </html>
